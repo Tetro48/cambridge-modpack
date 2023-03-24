@@ -31,12 +31,6 @@ local config_template = {
 
 
 function framework:new(secrets)
-	-- Notice: Bool vars will ignore limits!
-	-- How to set up one configurable section:
-	-- {
-	--    {"shown_name", "variable", "description", low_limit: int, high_limit: int, show_arrows: bool},
-	-- }
-	-- self.variable = default
 
 	loaded_vars = false
 	self.save_replay = false
@@ -46,16 +40,17 @@ function framework:new(secrets)
 	--This must have index of 0 pointing to some value, otherwise won't work and probably crash.
 	self.menu_ARR_table = { [0] = 8, 6, 5, 4, 3, 2, 2, 2, 1 }
 	--[[
-		Configuration Object Template:
-		{
-			default = default value,
-			setting_title = "setting title",
-			internal_variable_name = "internal variable name",
-			description = "description",
-			low_limit = <integer>,
-			high_limit = <integer>,
-			arrows = <boolean>
-		}
+	Notice: Bool vars will ignore limits!
+	Configuration Object Template:
+	{
+		default = default value,
+		setting_title = "setting title",
+		internal_variable_name = "internal variable name",
+		description = "description",
+		low_limit = <integer>,
+		high_limit = <integer>,
+		arrows = <boolean>
+	}
 	]]
 	---@type config_template[]
 	self.config_settings = {
