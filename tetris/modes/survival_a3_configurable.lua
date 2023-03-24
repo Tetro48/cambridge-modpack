@@ -29,12 +29,40 @@ function TrainingSurvivalA3Game:new(secrets)
 		"GM"
 	}
 
+	---@type config_template[]
 	self.config_settings = {
-		{ default = 0, "Speed Section", "speed_section", "Locks your speed level. Only speed is affected. Setting to -1 no longer locks the speed level.", -1, 13 },
-		{ default = false, "Invisible Mode", "invis", "The board go black and void if on"},
-		{ default = false, "Big Mode", "big_mode", "Pieces go big"},
-		{ default = false, "Bone Blocks", "force_bone", "Forces the piece's texture to be a bone block"},
-		{ default = 0, "Hide Next Pieces", "hide_next_pieces", "The next pieces go black and void if set more than 0."},
+		{
+			default = 0,
+			setting_title = "Speed Section",
+			internal_variable_name = "speed_section",
+			description = "Locks your speed level. Only speed is affected. Setting to -1 no longer locks the speed level.",
+			low_limit = -1,
+			high_limit = 13
+		},
+		{
+			default = false,
+			setting_title = "Invisible Mode",
+			internal_variable_name = "invis",
+			description = "The board go black and void if on"
+		},
+		{
+			default = false,
+			setting_title = "Big Mode",
+			internal_variable_name = "big_mode",
+			description = "Pieces go big"
+		},
+		{
+			default = false,
+			setting_title = "Bone Blocks",
+			internal_variable_name = "force_bone",
+			description = "Forces the piece's texture to be a bone block"
+		},
+		{
+			default = 0,
+			setting_title = "Hide Next Pieces",
+			internal_variable_name = "hide_next_pieces",
+			description = "The next pieces go black and void if set more than 0."
+		},
 	}
 
 	self.lock_drop = true

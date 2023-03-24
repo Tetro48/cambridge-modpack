@@ -26,8 +26,19 @@ function PhantomMania2Game:new(secrets)
 	self.queue_age = 0
 	self.roll_points = 0
 	
+	---@type config_template[]
 	self.config_settings = {
-		{ "Starting section", "starting_section", "Sets your starting section.", 0, 13 },
+		{
+			default = 0,
+			setting_title = "Starting section",
+			internal_variable_name = "starting_section",
+			description = "Sets your starting section.",
+			low_limit = 0,
+			high_limit = 13
+		},
+		{
+			default = 0
+		}
 	}
 
 	self.starting_section = 0

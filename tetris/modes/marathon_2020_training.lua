@@ -32,10 +32,45 @@ function Marathon2020Game:new(secrets)
 	}
 	self.torikan_hit = false
 	
+	---@type config_template[]
 	self.config_settings = {
-		{ default = 0, "Starting section", "starting_section", "Sets your starting section.", 0, 20 },
-		{ default = 0, "Starting cools", "starting_cools", "Sets your starting cools.", 0, 20 },
-		{ default = 0, "Grade points", "grade_points", "Sets your starting points.", 0 },
+		{
+			default = 0,
+			setting_title = "Starting section",
+			internal_variable_name = "starting_section",
+			description = "Sets your starting section.",
+			low_limit = 0,
+			high_limit = 20
+		},
+		{
+			default = 0,
+			setting_title = "Starting cools",
+			internal_variable_name = "starting_cools",
+			description = "Sets your starting cools.",
+			low_limit = 0,
+			high_limit = 20
+		},
+		{
+			default = 0,
+			setting_title = "Grade points",
+			internal_variable_name = "grade_points",
+			description = "Sets your starting points.",
+			low_limit = 0
+		},
+		{
+			default = 3,
+			setting_title = "Next Pieces",
+			internal_variable_name = "next_queue_length",
+			description = "How many pieces do you want to view at once? Limit: 0-6",
+			low_limit = 0,
+			high_limit = 6
+		},
+		{
+			default = true,
+			setting_title = "Piece Hold",
+			internal_variable_name = "enable_hold",
+			description = "The hold mechanic that probably most of you know about."
+		},
 	}
 	self.starting_section = 0
 	self.starting_cools = 0

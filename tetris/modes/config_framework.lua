@@ -8,47 +8,132 @@ framework.hash = "cfgfw"
 
 local local_replay_vars = {}
 local loaded_vars = false
+local wipe_menu_config
+
+---@class config_template Configuration Template
+---@field format string|fun(value) Value formatter
+---@field setting_title string Name of a setting
+---@field internal_variable_name any Internal variable to modify by key reference
+---@field description string
+---@field low_limit integer Sets a low boundary
+---@field high_limit integer Sets a high boundary
+---@field default integer|boolean Default value.
+---@field arrows boolean Show arrows or not.
+local config_template = {
+	setting_title = "",
+	internal_variable_name = "",
+	description = "",
+	low_limit = 0,
+	high_limit = 0,
+	default = 0,
+	arrows = true
+}
+
 
 function framework:new(secrets)
 	-- Notice: Bool vars will ignore limits!
 	-- How to set up one configurable section:
 	-- {
-	--    {"shown_name", "variable_name", "description", low_limit: int, high_limit: int, show_arrows: bool},
+	--    {"shown_name", "variable", "description", low_limit: int, high_limit: int, show_arrows: bool},
 	-- }
-	-- self.variable_name = default
+	-- self.variable = default
 
 	loaded_vars = false
 	self.save_replay = false
 	self.super:new(secrets)
 	self.menu_DAS = 12
-	self.menu_DAS_ticks = { ["up"] = 0, ["down"] = 0, ["left"] = 0, ["right"] = 0 }
+	self.menu_DAS_ticks = { up = 0, down = 0, left = 0, right = 0 }
 	--This must have index of 0 pointing to some value, otherwise won't work and probably crash.
 	self.menu_ARR_table = { [0] = 8, 6, 5, 4, 3, 2, 2, 2, 1 }
+	--[[
+		Configuration Object Template:
+		{
+			default = default value,
+			setting_title = "setting title",
+			internal_variable_name = "internal variable name",
+			description = "description",
+			low_limit = <integer>,
+			high_limit = <integer>,
+			arrows = <boolean>
+		}
+	]]
+	---@type config_template[]
 	self.config_settings = {
-		{ default = 1, "example 1", "example1" },
-		{ default = false, "example 2", "examplebool" },
-		{ default = 1, "example 3", "example3", "Some description test" },
-		{ default = 1, "example 4", "example3", "Some variable collision test" },
-		{ default = 1, "example 5", "example5", "Some low limit of -5 test", -5 },
-		{ default = 1, "example 6", "example6", "Some high limit of 300 test", nil, 300 },
-		{ default = 1, "example 7", "example7", "Some limit range from -33 to 36 test", -33, 36 },
-		{ default = 1, "example 8", "example8", "Arrowless", nil, nil, false },
+		{
+			default = 1,
+			setting_title = "example 1",
+			internal_variable_name = "example1",
+		},
+		{
+			default = false,
+			setting_title = "example 2",
+			internal_variable_name = "examplebool"
+		},
+		{
+			default = 1,
+			setting_title = "example 3",
+			internal_variable_name = "example3",
+			description = "Some description test"
+		},
+		{
+			default = 1,
+			setting_title = "example 4",
+			internal_variable_name = "example3",
+			description = "Some variable collision test"
+		},
+		{
+			default = 1,
+			setting_title = "example 5",
+			internal_variable_name = "example5",
+			description = "Some low limit of -5 test",
+			low_limit = -5
+		},
+		{
+			default = 1,
+			setting_title = "example 6",
+			internal_variable_name = "example6",
+			description = "Some high limit of 300 test",
+			high_limit = 300
+		},
+		{
+			default = 1,
+			setting_title = "example 7",
+			internal_variable_name = "example7",
+			description = "Some limit range from -33 to 36 test",
+			low_limit = -33,
+			high_limit = 36
+		},
+		{
+			default = 1,
+			setting_title = "example 8",
+			internal_variable_name = "example8",
+			description = "Arrowless",
+			arrows = false
+		},
+		{
+			default = 1,
+			setting_title = "example 9",
+			internal_variable_name = "example9",
+			description = "format deez values",
+			format = "value->%d"
+		}
 	}
 	self.selection = 1
 	self.ready_frames = 1
+	self.menu_sections_per_page = 16
 	self.in_menu = true
 	self.replay_frames = 1
-	self.wipe_menu_config = secrets.hold or false
+	wipe_menu_config = secrets.hold or false
 end
 
 function framework:onStart()
-	
+
 end
 
 function framework:putMissingVars()
 	for index, config_obj in ipairs(self.config_settings) do
-		if self[config_obj[2]] == nil then
-			self[config_obj[2]] = 0
+		if self[config_obj.internal_variable_name] == nil then
+			self[config_obj.internal_variable_name] = 0
 		end
 	end
 end
@@ -75,7 +160,6 @@ function framework:drawMenuDescription(text, selection)
 		love.graphics.setFont(font_3x5_2)
 		love.graphics.printf(text, 5, 420, 580, "left")
 	end
-
 end
 
 function framework:boolToString(bool)
@@ -87,21 +171,27 @@ function framework:loadVariables()
 	loaded_vars = true
 	for key, value in pairs(self.config_settings) do
 		--hard to read and understand
+		value.setting_title = value.setting_title or value[1]
+		value.internal_variable_name = value.internal_variable_name or value[2]
+		value.description = value.description or value[3]
+		value.low_limit = value.low_limit or value[4]
+		value.high_limit = value.high_limit or value[5]
+		value.arrows = value.arrows or value[6]
 		if config.mode_config then
 			if config.mode_config[self.hash] then
-				if config.mode_config[self.hash][value[2]] ~= nil then
-					self[value[2]] = config.mode_config[self.hash][value[2]]
+				if config.mode_config[self.hash][value.internal_variable_name] ~= nil then
+					self[value.internal_variable_name] = config.mode_config[self.hash][value.internal_variable_name]
 				end
 			end
 		end
-		if self[value[2]] == nil then
-			self[value[2]] = value.default or 1
+		if self[value.internal_variable_name] == nil then
+			self[value.internal_variable_name] = value.default or 1
 		end
-		if self.wipe_menu_config then
+		if wipe_menu_config then
 			if value.default ~= nil then
-				self[value[2]] = value.default
+				self[value.internal_variable_name] = value.default
 			else
-				self[value[2]] = self[value[2]] or 1
+				self[value.internal_variable_name] = self[value.internal_variable_name] or 1
 			end
 		end
 	end
@@ -114,7 +204,13 @@ function framework:advanceOneFrame(inputs)
 		return false
 	end
 	]]
-
+	--Also, time ticking is implicit. Beware of that!
+	--To explicitly disable time ticking with conditions, do this:
+	--[[
+	if condition then
+		self.frames = self.frames - 1
+	end
+	]]
 	if self.in_menu then
 		local maxSelection = #self.config_settings
 		self:loadVariables()
@@ -142,7 +238,8 @@ function framework:advanceOneFrame(inputs)
 			else
 				self.selection = self.selection - 1
 			end
-		elseif self:menuDASInput(inputs["down"], "down") then
+		end
+		if self:menuDASInput(inputs["down"], "down") then
 			if self.selection > maxSelection - 1 then
 				self.selection = 1
 			else
@@ -150,13 +247,14 @@ function framework:advanceOneFrame(inputs)
 			end
 		end
 		local config_obj = self.config_settings[self.selection]
-		local var = self[config_obj[2]]
+		local var = self[config_obj.internal_variable_name]
 		if var == true or var == false then
 			if self:menuDASInput(inputs["left"], "left") or self:menuDASInput(inputs["right"], "right") then
-				self[config_obj[2]] = not self[config_obj[2]]
+				self[config_obj.internal_variable_name] = not self[config_obj.internal_variable_name]
 			end
 		else
-			self[config_obj[2]] = self:menuIncrement(inputs, var, 1, config_obj[4], config_obj[5])
+			self[config_obj.internal_variable_name] = self:menuIncrement(inputs, var, 1, config_obj.low_limit,
+				config_obj.high_limit)
 		end
 		if ((inputs["rotate_left"] and not self.prev_inputs["rotate_left"]) or (inputs["rotate_left2"] and not self.prev_inputs["rotate_left2"])
 			or (inputs["rotate_right"] and not self.prev_inputs["rotate_right"]) or (inputs["rotate_right2"] and not self.prev_inputs["rotate_right"])
@@ -168,7 +266,7 @@ function framework:advanceOneFrame(inputs)
 				local new_inputs = {}
 				new_inputs["inputs"] = {}
 				for key, value in pairs(self.config_settings) do
-					local_replay_vars[value[2]] = self[value[2]]
+					local_replay_vars[value.internal_variable_name] = self[value.internal_variable_name]
 				end
 				new_inputs["variables"] = local_replay_vars
 				new_inputs["frames"] = #self.config_settings * 15 + 60
@@ -186,10 +284,11 @@ function framework:advanceOneFrame(inputs)
 end
 
 local menuDAS = 12
-local menuDASf = { ["up"] = 0, ["down"] = 0, ["left"] = 0, ["right"] = 0 }
+local menuDASf = { up = 0, down = 0, left = 0, right = 0 }
 function framework:menuDASInput(input, inputString)
 	local result = false
-	if (input) then self.menu_DAS_ticks[inputString] = self.menu_DAS_ticks[inputString] + 1
+	if (input) then
+		self.menu_DAS_ticks[inputString] = self.menu_DAS_ticks[inputString] + 1
 	else
 		self.menu_DAS_ticks[inputString] = 0
 	end
@@ -236,20 +335,26 @@ function framework:drawCustom()
 	scene.paused = false
 	for i, config_obj in ipairs(self.config_settings) do
 		i = i - 1
-		if math.floor(i / 15) == math.floor((self.selection - 1) / 15) then
-			local var = self[config_obj[2]]
-			if var == true or var == false then
-				self:drawMenuSection(config_obj[1], self:boolToString(var), i + 1, i % 15 + 1, config_obj[6])
+		if math.floor(i / self.menu_sections_per_page) == math.floor((self.selection - 1) / self.menu_sections_per_page) then
+			local var = self[config_obj.internal_variable_name]
+			if type(config_obj.format) == "function" then
+				self:drawMenuSection(config_obj.setting_title, config_obj.format(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+			elseif type(config_obj.format) == "string" then
+				self:drawMenuSection(config_obj.setting_title, config_obj.format:format(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+			elseif type(var) == "boolean" then
+				self:drawMenuSection(config_obj.setting_title, self:boolToString(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 			else
-				self:drawMenuSection(config_obj[1], var, i + 1, i % 15 + 1, config_obj[6])
+				self:drawMenuSection(config_obj.setting_title, var, i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 			end
 		end
 	end
-	if #self.config_settings > 15 then
-		love.graphics.printf(string.format("Page %d/%d", math.floor((self.selection - 1) / 15) + 1, math.floor((#self.config_settings - 1) / 15) + 1), 60, 85, 160, "right")
+	if #self.config_settings > self.menu_sections_per_page then
+		love.graphics.printf(
+			string.format("Page %d/%d", math.floor((self.selection - 1) / self.menu_sections_per_page) + 1,
+				math.floor((#self.config_settings - 1) / self.menu_sections_per_page) + 1), 60, 85, 160, "right")
 	end
-	if self.config_settings[self.selection][3] ~= nil then
-		self:drawMenuDescription(self.config_settings[self.selection][3])
+	if self.config_settings[self.selection].description ~= nil then
+		self:drawMenuDescription(self.config_settings[self.selection].description)
 		love.graphics.printf("Description", 5, 400, 160, "left")
 	end
 	love.graphics.setFont(font_3x5_2)
@@ -274,7 +379,7 @@ function framework:draw(paused)
 
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(font_3x5_2)
-	if config.visualsettings.display_gamemode == 1 or config.gamesettings.display_gamemode == 1 then
+	if (config.visualsettings and config.visualsettings.display_gamemode == 1) or config.gamesettings.display_gamemode == 1 then
 		love.graphics.printf(
 			self.name .. " - " .. self.ruleset.name,
 			0, 460, 640, "left"
