@@ -61,7 +61,8 @@ function TrainingSurvivalA3Game:new(secrets)
 			default = 0,
 			setting_title = "Hide Next Pieces",
 			internal_variable_name = "hide_next_pieces",
-			description = "The next pieces go black and void if set more than 0."
+			description = "The next pieces go black and void if set more than 0.",
+			low_limit = 0
 		},
 	}
 

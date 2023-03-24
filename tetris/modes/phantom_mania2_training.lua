@@ -37,8 +37,19 @@ function PhantomMania2Game:new(secrets)
 			high_limit = 13
 		},
 		{
-			default = 0
-		}
+			default = 3,
+			setting_title = "Next Pieces",
+			internal_variable_name = "next_queue_length",
+			description = "How many pieces do you want to view at once? Limit: 0-6",
+			low_limit = 0,
+			high_limit = 6
+		},
+		{
+			default = true,
+			setting_title = "Piece Hold",
+			internal_variable_name = "enable_hold",
+			description = "The hold mechanic that probably most of you know about."
+		},
 	}
 
 	self.starting_section = 0
