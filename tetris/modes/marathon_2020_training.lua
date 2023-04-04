@@ -213,10 +213,21 @@ function Marathon2020Game:onStart()
 			self.torikan_passed[key] = true
 		end
 	end
-	for i = 0, self.starting_cools - 1 do
-		table.insert(self.secondary_section_times, cool_cutoffs[i])
-		self.section_cool_count = self.section_cool_count + 1
+	self.starting_cools = self.starting_cools > self.starting_section and self.starting_section or self.starting_cools
+	for i = 6, self.starting_section do
 		self.delay_level = math.min(20, self.delay_level + 1)
+	end
+	local local_delay_level = 0
+	for i = 1, self.starting_cools do
+		table.insert(self.secondary_section_times, cool_cutoffs[local_delay_level])
+		self.section_cool_count = self.section_cool_count + 1
+		if i <= 10 then
+			self.delay_level = math.min(20, self.delay_level + 1)
+			local_delay_level = math.min(20, local_delay_level + 1)
+		end
+		if i > 5 then
+			local_delay_level = math.min(20, local_delay_level + 1)
+		end
 		table.insert(self.section_status, "cool")
 	end
 	self.max_grade_points = self.grade_points
