@@ -17,7 +17,7 @@ function Marathon2020Game:new(secrets)
 	self.lock_drop = true
 	self.lock_hard_drop = true
 	self.enable_hold = true
-	self.next_queue_length = 3
+	self.next_queue_length = 6
 
 	self.delay_level = 0
 	self.roll_frames = 0
