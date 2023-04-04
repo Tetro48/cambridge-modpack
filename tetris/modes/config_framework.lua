@@ -171,7 +171,7 @@ function framework:loadVariables()
 		value.description = value.description or value[3]
 		value.low_limit = value.low_limit or value[4]
 		value.high_limit = value.high_limit or value[5]
-		value.arrows = value.arrows or value[6]
+		if value.arrows == nil then value.arrows = value[6] end
 		if config.mode_config then
 			if config.mode_config[self.hash] then
 				if config.mode_config[self.hash][value.internal_variable_name] ~= nil then
