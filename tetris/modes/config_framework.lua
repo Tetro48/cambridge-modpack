@@ -180,7 +180,7 @@ function framework:loadVariables()
 			end
 		end
 		if self[value.internal_variable_name] == nil then
-			self[value.internal_variable_name] = value.default or 1
+			self[value.internal_variable_name] = value.default ~= nil and value.default or 1
 		end
 		if wipe_menu_config then
 			if value.default ~= nil then
