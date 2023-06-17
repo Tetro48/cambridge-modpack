@@ -142,10 +142,7 @@ function PhantomMania2Game:hitTorikan(old_level, new_level)
 	return false
 end
 
-function PhantomMania2Game:advanceOneFrame(inputs)
-	if self.super.advanceOneFrame(self, inputs) == false then
-		return false
-	end
+function PhantomMania2Game:advanceOneFrame()
 	if self.clear then
 		self.roll_frames = self.roll_frames + 1
 		if self.roll_frames < 0 then
@@ -161,7 +158,7 @@ function PhantomMania2Game:advanceOneFrame(inputs)
 			self.completed = true
 		end
 	elseif self.ready_frames == 0 then
-		-- self.frames = self.frames + 1 --seriously?
+		self.frames = self.frames + 1
 		self.hold_age = self.hold_age + 1
 	end
 	return true

@@ -192,20 +192,7 @@ function framework:loadVariables()
 	end
 end
 
-function framework:advanceOneFrame(inputs)
-	--This code snippet must be placed at the head of Mode:advanceOneFrame(inputs) if you're extending from this framework or else it won't work correctly.
-	--[[
-	if self.super.advanceOneFrame(self, inputs) == false then
-		return false
-	end
-	]]
-	--Also, time ticking is implicit. Beware of that!
-	--To explicitly disable time ticking with conditions, do this:
-	--[[
-	if condition then
-		self.frames = self.frames - 1
-	end
-	]]
+function framework:update(inputs, ruleset)
 	if self.in_menu then
 		local maxSelection = #self.config_settings
 		self:loadVariables()
@@ -272,10 +259,9 @@ function framework:advanceOneFrame(inputs)
 			config.mode_config[self.hash] = local_replay_vars
 			saveConfig()
 		end
-		return false
-	elseif self.ready_frames == 0 then
-		self.frames = self.frames + 1
+		return
 	end
+	default_gamemode.update(self, inputs, ruleset)
 end
 
 local menuDAS = 12

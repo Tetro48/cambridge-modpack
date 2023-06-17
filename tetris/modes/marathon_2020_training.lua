@@ -176,10 +176,7 @@ end
 
 local cleared_row_levels = {1, 2, 4, 6}
 
-function Marathon2020Game:advanceOneFrame(inputs)
-	if self.super.advanceOneFrame(self, inputs) == false then
-		return false
-	end
+function Marathon2020Game:advanceOneFrame()
 	if self.torikan_hit then
 		self.no_roll_frames = self.no_roll_frames + 1
 		if self.no_roll_frames > 120 then
@@ -194,6 +191,8 @@ function Marathon2020Game:advanceOneFrame(inputs)
 			if self:qualifiesForMRoll() then self.grade = 31 end
 			self.completed = true
 		end
+	elseif self.ready_frames == 0 then
+		self.frames = self.frames + 1
 	end
 	return true
 end

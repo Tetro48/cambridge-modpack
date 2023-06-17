@@ -149,11 +149,7 @@ function TrainingSurvivalA3Game:hitTorikan(old_level, new_level)
 	return false
 end
 
-function TrainingSurvivalA3Game:advanceOneFrame(inputs)
-	--odd quirk of this config system.
-	if self.super.advanceOneFrame(self, inputs) == false then
-		return false
-	end
+function TrainingSurvivalA3Game:advanceOneFrame()
 	if self.clear then
 		self.roll_frames = self.roll_frames + 1
 		if self.roll_frames < 0 then
@@ -166,6 +162,8 @@ function TrainingSurvivalA3Game:advanceOneFrame(inputs)
 			switchBGM(nil)
 			self.completed = true
 		end
+	elseif self.ready_frames == 0 then
+		self.frames = self.frames + 1
 	end
 	return true
 end
