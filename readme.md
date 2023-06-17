@@ -4,7 +4,7 @@ Repository for Tetro48's custom modes in [Cambridge](https://github.com/MillaBas
 ## How to use
 Download the source code ZIP from [here](https://github.com/Tetro48/cambridge-modpack/archive/main.zip).
 
-Once done, extract the `tetris` and `res` folder into one of these directories, depending on how you're running Cambridge
+Once done, if you're running the latest of the latest from Tetro48's Cambridge fork, unpack the modpack, and drag and drop the modpack folder into the game, otherwise extract the `tetris` and `res` folder into one of these directories, depending on how you're running Cambridge
 (create any folders that don't exist!):  
 
 * If you're running the game through a .exe, extract them into `%APPDATA%\cambridge\`.
