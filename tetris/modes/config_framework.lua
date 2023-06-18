@@ -11,7 +11,7 @@ local loaded_vars = false
 local wipe_menu_config
 
 ---@class config_template Configuration Template
----@field format string|fun(value) Value formatter
+---@field format string|fun(value):string Value formatter
 ---@field setting_title string Name of a setting
 ---@field internal_variable_name any Internal variable to modify by key reference
 ---@field description string
@@ -111,7 +111,25 @@ function framework:new(secrets)
 			internal_variable_name = "example9",
 			description = "format deez values",
 			format = "value->%d"
-		}
+		},
+		{
+			default = 1,
+			setting_title = "example 10",
+			internal_variable_name = "example10",
+			description = "Shows off some formatting functionality (get it?). Example formatting: FizzBuzz.",
+			low_limit = 1,
+			format = function (value)
+				if value % 3 == 0 and value % 5 == 0 then
+				  return "FizzBuzz"
+				elseif value % 3 == 0 then
+				  return "Fizz"
+				elseif value % 5 == 0 then
+				  return "Buzz"
+				else
+				  return value
+				end
+			end,
+		  }
 	}
 	self.selection = 1
 	self.ready_frames = 1
