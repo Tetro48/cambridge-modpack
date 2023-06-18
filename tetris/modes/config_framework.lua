@@ -10,6 +10,7 @@ local local_replay_vars = {}
 local loaded_vars = false
 local wipe_menu_config
 
+---This shouldn't be read or written directly on it, only used for Lua Language Server annotations.
 ---@class config_template Configuration Template
 ---@field format string|fun(value):string Value formatter
 ---@field setting_title string Name of a setting
