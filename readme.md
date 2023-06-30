@@ -1,5 +1,5 @@
 # Tetro48's Cambridge Modpack
-Repository for Tetro48's custom modes in [Cambridge](https://github.com/MillaBasset/cambridge).
+Repository for Tetro48's custom modes for [Cambridge](https://github.com/MillaBasset/cambridge).
 
 ## How to use
 Download the source code ZIP from [here](https://github.com/Tetro48/cambridge-modpack/archive/main.zip).
