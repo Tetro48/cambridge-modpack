@@ -35,7 +35,7 @@ function framework:new(secrets)
 
 	loaded_vars = false
 	self.save_replay = false
-	self.super:new(secrets)
+	default_gamemode.super.new(self, secrets)
 	self.menu_DAS = 12
 	self.menu_DAS_ticks = { up = 0, down = 0, left = 0, right = 0 }
 	--This must have index of 0 pointing to some value, otherwise won't work and probably crash.
@@ -176,7 +176,7 @@ function framework:drawMenuDescription(text, selection)
 	end
 end
 
-function framework:boolToString(bool)
+function framework.boolToString(bool)
 	if bool then return "ON" else return "OFF" end
 end
 
@@ -342,7 +342,7 @@ function framework:drawCustom()
 			elseif type(config_obj.format) == "string" then
 				self:drawMenuSection(config_obj.setting_title, config_obj.format:format(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 			elseif type(var) == "boolean" then
-				self:drawMenuSection(config_obj.setting_title, self:boolToString(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+				self:drawMenuSection(config_obj.setting_title, self.boolToString(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 			else
 				self:drawMenuSection(config_obj.setting_title, var, i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 			end
