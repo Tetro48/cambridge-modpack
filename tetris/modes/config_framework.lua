@@ -330,7 +330,7 @@ function framework:getMenuARR(number)
 	return math.ceil(25 / math.sqrt(number))
 end
 
-function framework:drawCustom()
+function framework:drawConfigMenu()
 	if not self.in_menu then return end
 	scene.paused = false
 	for i, config_obj in ipairs(self.config_settings) do
@@ -374,6 +374,8 @@ function framework:draw(paused)
 		self:drawNextQueue(self.ruleset)
 		self:drawScoringInfo()
 		self:drawReadyGo()
+	else
+		self:drawConfigMenu()
 	end
 	self:drawCustom()
 
