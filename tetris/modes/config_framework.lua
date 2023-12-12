@@ -337,15 +337,15 @@ function framework:drawConfigMenu()
 		i = i - 1
 		if math.floor(i / self.menu_sections_per_page) == math.floor((self.selection - 1) / self.menu_sections_per_page) then
 			local var = self[config_obj.internal_variable_name]
+			local out_value = var
 			if type(config_obj.format) == "function" then
-				self:drawMenuSection(config_obj.setting_title, config_obj.format(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+				out_value = config_obj.format(var)
 			elseif type(config_obj.format) == "string" then
-				self:drawMenuSection(config_obj.setting_title, config_obj.format:format(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+				out_value = config_obj.format:format(var)
 			elseif type(var) == "boolean" then
-				self:drawMenuSection(config_obj.setting_title, self.boolToString(var), i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
-			else
-				self:drawMenuSection(config_obj.setting_title, var, i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
+				out_value = self.boolToString(var)
 			end
+			self:drawMenuSection(config_obj.setting_title, out_value, i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows)
 		end
 	end
 	if #self.config_settings > self.menu_sections_per_page then
@@ -358,7 +358,7 @@ function framework:drawConfigMenu()
 		love.graphics.printf("Description", 5, 400, 160, "left")
 	end
 	love.graphics.setFont(font_3x5_2)
-	love.graphics.printf("Press rotation to start", 64, 360, 160, "center")
+	love.graphics.printf("Try rotating to start", 64, 360, 160, "center")
 end
 
 function framework:draw(paused)
