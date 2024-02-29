@@ -36,7 +36,7 @@ function framework:new(secrets)
 
 	loaded_vars = false
 	self.save_replay = false
-	default_gamemode.super.new(self, secrets)
+	default_gamemode.new(self, secrets)
 	self.menu_DAS = 12
 	self.menu_DAS_ticks = { up = 0, down = 0, left = 0, right = 0 }
 	--This must have index of 0 pointing to some value, otherwise won't work and probably crash.
