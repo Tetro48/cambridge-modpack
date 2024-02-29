@@ -5,6 +5,7 @@ local framework = default_gamemode:extend()
 framework.name = "Config Framework"
 framework.tagline = "The framework to set up built-in mode config."
 framework.hash = "cfgfw"
+framework.tags = {"Configurable"}
 
 local local_replay_vars = {}
 local loaded_vars = false
@@ -12,14 +13,14 @@ local wipe_menu_config
 
 ---This shouldn't be read or written directly on it, only used for Lua Language Server annotations.
 ---@class config_template Configuration Template
----@field format string|fun(value):string Value formatter
+---@field format string|nil|fun(value):string Value formatter
 ---@field setting_title string Name of a setting
 ---@field internal_variable_name any Internal variable to modify by key reference
----@field description string
----@field low_limit integer Sets a low boundary
----@field high_limit integer Sets a high boundary
+---@field description string|nil
+---@field low_limit integer|nil Sets a low boundary
+---@field high_limit integer|nil Sets a high boundary
 ---@field default integer|boolean Default value.
----@field arrows boolean Show arrows or not.
+---@field arrows boolean|nil Show arrows or not.
 local config_template = {
 	setting_title = "",
 	internal_variable_name = "",
