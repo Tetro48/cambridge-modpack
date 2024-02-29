@@ -17,6 +17,7 @@ local wipe_menu_config
 ---@field setting_title string Name of a setting
 ---@field internal_variable_name any Internal variable to modify by key reference
 ---@field description string|nil
+---@field increment_type "integer"|"float"|nil Default value type: Integer
 ---@field low_limit integer|nil Sets a low boundary
 ---@field high_limit integer|nil Sets a high boundary
 ---@field default integer|boolean Default value.
@@ -39,6 +40,7 @@ function framework:new(secrets)
 	default_gamemode.new(self, secrets)
 	self.menu_DAS = 12
 	self.menu_DAS_ticks = { up = 0, down = 0, left = 0, right = 0 }
+	self.menu_DAS_accumulant = { left = 0, right = 0 }
 	--This must have index of 0 pointing to some value, otherwise won't work and probably crash.
 	self.menu_ARR_table = { [0] = 8, 6, 5, 4, 3, 2, 2, 2, 1 }
 	--[[
@@ -51,6 +53,7 @@ function framework:new(secrets)
 		description = "description",
 		low_limit = <integer>,
 		high_limit = <integer>,
+		increment_type = "integer"/"float",
 		arrows = <boolean>
 	}
 	]]
@@ -131,7 +134,7 @@ function framework:new(secrets)
 				  return value
 				end
 			end,
-		  }
+		},
 	}
 	self.selection = 1
 	self.ready_frames = 1
@@ -192,6 +195,9 @@ function framework:loadVariables()
 		value.low_limit = value.low_limit or value[4]
 		value.high_limit = value.high_limit or value[5]
 		if value.arrows == nil then value.arrows = value[6] end
+		if value.increment_type == nil then
+			value.increment_type = "integer"
+		end
 		if config.mode_config then
 			if config.mode_config[self.hash] then
 				if config.mode_config[self.hash][value.internal_variable_name] ~= nil then
@@ -199,15 +205,8 @@ function framework:loadVariables()
 				end
 			end
 		end
-		if self[value.internal_variable_name] == nil then
+		if self[value.internal_variable_name] == nil or wipe_menu_config then
 			self[value.internal_variable_name] = value.default ~= nil and value.default or 1
-		end
-		if wipe_menu_config then
-			if value.default ~= nil then
-				self[value.internal_variable_name] = value.default
-			else
-				self[value.internal_variable_name] = self[value.internal_variable_name] or 1
-			end
 		end
 	end
 end
@@ -255,8 +254,8 @@ function framework:update(inputs, ruleset)
 				self[config_obj.internal_variable_name] = not self[config_obj.internal_variable_name]
 			end
 		else
-			self[config_obj.internal_variable_name] = self:menuIncrement(inputs, var, 1, config_obj.low_limit,
-				config_obj.high_limit)
+			self[config_obj.internal_variable_name] = self:menuIncrement(inputs, var, 1, config_obj.increment_type == "integer",
+				config_obj.low_limit, config_obj.high_limit)
 		end
 		if ((inputs["rotate_left"] and not self.prev_inputs["rotate_left"]) or (inputs["rotate_left2"] and not self.prev_inputs["rotate_left2"])
 			or (inputs["rotate_right"] and not self.prev_inputs["rotate_right"]) or (inputs["rotate_right2"] and not self.prev_inputs["rotate_right"])
@@ -284,33 +283,63 @@ function framework:update(inputs, ruleset)
 	default_gamemode.update(self, inputs, ruleset)
 end
 
-local menuDAS = 12
-local menuDASf = { up = 0, down = 0, left = 0, right = 0 }
-function framework:menuDASInput(input, inputString)
+-- Legacy DAS
+function framework:menuDASInput(input, input_string)
 	local result = false
 	if (input) then
-		self.menu_DAS_ticks[inputString] = self.menu_DAS_ticks[inputString] + 1
+		self.menu_DAS_ticks[input_string] = self.menu_DAS_ticks[input_string] + 1
 	else
-		self.menu_DAS_ticks[inputString] = 0
+		self.menu_DAS_ticks[input_string] = 0
 	end
-	if (self.prev_inputs[inputString] == false or
-		(self.menu_DAS_ticks[inputString] >= self.menu_DAS and self.menu_DAS_ticks[inputString] % self:getMenuARR(self.menu_DAS_ticks[inputString]) == 0) or
-		self.menu_DAS_ticks[inputString] == 1) and input then
+	if (self.prev_inputs[input_string] == false or
+		(self.menu_DAS_ticks[input_string] >= self.menu_DAS and self.menu_DAS_ticks[input_string] % self:getMenuARR(self.menu_DAS_ticks[input_string]) == 0) or
+		self.menu_DAS_ticks[input_string] == 1) and input then
 		result = true
 		playSE("cursor")
 	end
 	return result
 end
 
-function framework:menuIncrement(inputs, current_value, increase_by, low_limit, high_limit)
-	local scaled_increase_by
-	if self:menuDASInput(inputs["right"], "right") then
-		scaled_increase_by = increase_by * math.ceil(self.menu_DAS_ticks["right"] / 90)
-		current_value = current_value + scaled_increase_by
-	elseif self:menuDASInput(inputs["left"], "left") then
-		scaled_increase_by = increase_by * math.ceil(self.menu_DAS_ticks["left"] / 90)
-		current_value = current_value - scaled_increase_by
+function framework:configIncrementWithDAS(input, input_string, is_integer)
+	if (input) then
+		self.menu_DAS_ticks[input_string] = self.menu_DAS_ticks[input_string] + 1
+	else
+		self.menu_DAS_ticks[input_string] = 0
+		self.menu_DAS_accumulant[input_string] = 0
 	end
+	if (self.prev_inputs[input_string] == false or
+		(self.menu_DAS_ticks[input_string] >= self.menu_DAS) or
+		self.menu_DAS_ticks[input_string] == 1) and input then
+		if self.menu_DAS_ticks[input_string] == 1 then
+			playSE("cursor")
+			return 1
+		end
+		local increment = math.max(((self.menu_DAS_ticks[input_string] + 15 - self.menu_DAS) ^ 1.2) / 360,
+		                           love.keyboard.isScancodeDown("lctrl", "rctrl") and 0 or 1/4)
+		if not is_integer then
+			if (self.menu_DAS_ticks[input_string] - self.menu_DAS) % 3 == 0 then
+				playSE("cursor")
+			end
+			return increment
+		else
+			self.menu_DAS_accumulant[input_string] = self.menu_DAS_accumulant[input_string] + increment
+			if (increment < 1/3 and self.menu_DAS_accumulant[input_string] > 1) or
+			   (self.menu_DAS_ticks[input_string] - self.menu_DAS) % 3 == 0 and increment >= 1/3 then
+				playSE("cursor")
+			end
+			if self.menu_DAS_accumulant[input_string] > 1 then
+				local increment_return = math.floor(self.menu_DAS_accumulant[input_string])
+				self.menu_DAS_accumulant[input_string] = self.menu_DAS_accumulant[input_string] % 1
+				return increment_return
+			end
+		end
+	end
+	return 0
+end
+
+function framework:menuIncrement(inputs, current_value, increase_by, is_integer, low_limit, high_limit)
+	current_value = current_value + self:configIncrementWithDAS(inputs["right"], "right", is_integer) * increase_by
+	current_value = current_value - self:configIncrementWithDAS(inputs["left"], "left", is_integer) * increase_by
 	if low_limit == nil then low_limit = -math.huge end
 	if high_limit == nil then high_limit = math.huge end
 	if current_value > high_limit then
