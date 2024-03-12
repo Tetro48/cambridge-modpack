@@ -135,6 +135,14 @@ function framework:new(secrets)
 				end
 			end,
 		},
+		{
+			default = 1.0,
+			setting_title = "example 11",
+			internal_variable_name = "example11",
+			increment_type = "float",
+			description = "Floating point increment, yay! Hold Shift to decrease increment by 100x.",
+			format = "%.2f",
+		}
 	}
 	self.selection = 1
 	self.ready_frames = 1
@@ -254,7 +262,8 @@ function framework:update(inputs, ruleset)
 				self[config_obj.internal_variable_name] = not self[config_obj.internal_variable_name]
 			end
 		else
-			self[config_obj.internal_variable_name] = self:menuIncrement(inputs, var, 1, config_obj.increment_type == "integer",
+			self[config_obj.internal_variable_name] = self:menuIncrement(inputs, var,
+			love.keyboard.isScancodeDown("lshift", "rshift") and config_obj.increment_type == "float" and 0.01 or 1, config_obj.increment_type == "integer",
 				config_obj.low_limit, config_obj.high_limit)
 		end
 		if ((inputs["rotate_left"] and not self.prev_inputs["rotate_left"]) or (inputs["rotate_left2"] and not self.prev_inputs["rotate_left2"])
