@@ -214,10 +214,10 @@ function ChallengerGrid:applyPiece(piece)
 		self:applyBigPiece(piece)
 		return
 	end
-	offsets = piece:getBlockOffsets()
+	local offsets = piece:getBlockOffsets()
 	for index, offset in pairs(offsets) do
-		x = piece.position.x + offset.x
-		y = piece.position.y + offset.y + 16
+		local x = piece.position.x + offset.x
+		local y = piece.position.y + offset.y + 16
 		if y + 1 > 0 and y < self.height then
 			self.grid[y + 1][x + 1] = {
 				skin = piece.skin,
@@ -228,10 +228,10 @@ function ChallengerGrid:applyPiece(piece)
 end
 
 function ChallengerGrid:applyBigPiece(piece)
-	offsets = piece:getBlockOffsets()
+	local offsets = piece:getBlockOffsets()
 	for index, offset in pairs(offsets) do
-		x = piece.position.x + offset.x
-		y = piece.position.y + offset.y + 8
+		local x = piece.position.x + offset.x
+		local y = piece.position.y + offset.y + 8
 		for a = 1, 2 do
 			for b = 1, 2 do
 				if y * 2 + a > 0 and y * 2 < self.height then
