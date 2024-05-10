@@ -9,7 +9,7 @@ local block = { skin = "2tie", colour = "A" }
 	This grid assumes height of 40 is default. THIS SHOULDN'T BE TREATED AS A NORMAL GRID.
 ]]
 function ChallengerGrid:new(width, height)
-	self.linesFrozen = 0
+	self.frozen_lines = 0
 	self.grid = {}
 	self.grid_age = {}
 	self.cleared_lines = {}
@@ -25,9 +25,9 @@ function ChallengerGrid:new(width, height)
 	end
 end
 
-function ChallengerGrid:SetFrozenLines(lines)
-	if lines == nil then self.linesFrozen = 0
-	else self.linesFrozen = lines
+function ChallengerGrid:setFrozenLines(lines)
+	if lines == nil then self.frozen_lines = 0
+	else self.frozen_lines = lines
 	end
 end
 
@@ -52,8 +52,8 @@ function ChallengerGrid:isOccupied(x, y)
 end
 
 function ChallengerGrid:isRowFull(row)
-	-- print(self.linesFrozen)
-	-- if self.height - row < self.linesFrozen then
+	-- print(self.frozen_lines)
+	-- if self.height - row < self.frozen_lines then
 	-- 	return false
 	-- end
 	for index, square in pairs(self.grid[row]) do
@@ -64,7 +64,7 @@ end
 
 function ChallengerGrid:isRowEmpty(row)
 	-- print(row)
-	-- if self.height - row < self.linesFrozen then
+	-- if self.height - row < self.frozen_lines then
 	-- 	return false
 	-- end
 	for index, square in pairs(self.grid[row]) do
@@ -126,7 +126,7 @@ end
 function ChallengerGrid:getClearedRowCount()
 	local count = 0
 	local cleared_row_table = {}
-	for row = 1, self.height - self.linesFrozen do
+	for row = 1, self.height - self.frozen_lines do
 		if self:isRowFull(row) then
 			count = count + 1
 			table.insert(cleared_row_table, row)
@@ -137,7 +137,7 @@ end
 
 function ChallengerGrid:markClearedRows()
 	local block_table = {}
-	for row = 1, self.height - self.linesFrozen do
+	for row = 1, self.height - self.frozen_lines do
 		if self:isRowFull(row) then
 			block_table[row] = {}
 			self.cleared_lines[row] = true

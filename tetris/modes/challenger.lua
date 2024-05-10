@@ -137,6 +137,7 @@ function ChallengerGame:new(secret_inputs)
 	self.nextseclv = (self.start_level + 1) * 100
 	self.coolprevtime = 0;
 	
+	---@type love.ParticleSystem[]
 	self.particle_systems = {}
 
 	-- This is notorious for taking up a lot of memory. Also it needs to be disposed of at the end.
@@ -273,7 +274,7 @@ function ChallengerGame:getARE()
 	return math.ceil(self.ARETiming)
 end
 
-function ChallengerGame:getLinesFrozen()
+function ChallengerGame:getFrozenLines()
 	local result = 0
 	if self.lineFreezingMechanic then
 		result = self.arrayLinesFrozen[self:getSection()]
@@ -422,9 +423,9 @@ local isPressed
 function ChallengerGame:advanceOneFrame(inputs, ruleset)
 	-- if self.in_menu then
 	-- 	self.rpc_details = "In configuration menu"
-	-- elseif self:getLinesFrozen() > 12 then
+	-- elseif self:getFrozenLines() > 12 then
 	-- 	self.rpc_details = "Frozen to death. Level: "..self.level.."/"..self.nextseclv
-	-- elseif self:getLinesFrozen() > 0 then
+	-- elseif self:getFrozenLines() > 0 then
 	-- 	self.rpc_details = "Cold. Brrr... Level: "..self.level.."/"..self.nextseclv
 	-- elseif self.level < 800 then
 	-- 	self.rpc_details = "In game. Level: "..self.level.."/"..self.nextseclv
@@ -437,7 +438,7 @@ function ChallengerGame:advanceOneFrame(inputs, ruleset)
 	DiscordRPC:update({
 		details = self.rpc_details
 	})
-	self.grid:SetFrozenLines(self:getLinesFrozen())
+	self.grid:setFrozenLines(self:getFrozenLines())
     avgpps = piececount / math.abs(totaltime / 60)
 	if self.in_menu then
 		local maxSelection = 1
@@ -1558,10 +1559,10 @@ function ChallengerGame:drawCustom()
 	end
 	if self.lineFreezingMechanic then
 		love.graphics.setColor(0.2, 0.2, 0.9, 0.5)
-		if(self:getLinesFrozen() ~= nil) then if(self:getLinesFrozen() > 0) then
+		if(self:getFrozenLines() ~= nil) then if(self:getFrozenLines() > 0) then
 			love.graphics.rectangle(
-			"fill", 64, 400 - 16 * (self:getLinesFrozen()),
-			16 * self.grid.width, 16 * (self:getLinesFrozen())
+			"fill", 64, 400 - 16 * (self:getFrozenLines()),
+			16 * self.grid.width, 16 * (self:getFrozenLines())
 			)
 		end end
 	end
