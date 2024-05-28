@@ -18,9 +18,9 @@ local wipe_menu_config
 ---@field internal_variable_name any Internal variable to modify by key reference
 ---@field description string|nil
 ---@field increment_type "integer"|"float"|nil Default value type: Integer
----@field low_limit integer|nil Sets a low boundary
----@field high_limit integer|nil Sets a high boundary
----@field default integer|boolean Default value.
+---@field low_limit number|nil Sets a low boundary
+---@field high_limit number|nil Sets a high boundary
+---@field default number|boolean Default value.
 ---@field arrows boolean|nil Show arrows or not.
 local config_template = {
 	setting_title = "",
