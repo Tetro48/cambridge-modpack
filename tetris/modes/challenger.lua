@@ -30,6 +30,7 @@ local ChallengerGame = GameMode:extend()
 ChallengerGame.name = "Challenger"
 ChallengerGame.hash = "Challenger"
 ChallengerGame.tagline = "Highly flexible, configurable, challenging mode."
+ChallengerGame.tags = {"Configurable", "Challenging"}
 
 local tableBGMFadeout = {385,585,680,860,950,-1}
 

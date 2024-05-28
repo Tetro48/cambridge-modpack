@@ -10,6 +10,7 @@ local PhantomicInsanity = GameMode:extend()
 PhantomicInsanity.name = "Phantomic Insanity"
 PhantomicInsanity.hash = "PhantomicInsanity"
 PhantomicInsanity.tagline = "The blocks are never seen and never heard! How far can you go in this?"
+PhantomicInsanity.tags = {"Insanity", "Invisible", "Near-impossible"}
 
 
 function PhantomicInsanity:new()

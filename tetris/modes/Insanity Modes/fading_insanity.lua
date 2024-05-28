@@ -10,6 +10,7 @@ local PhantomicInsanity = GameMode:extend()
 PhantomicInsanity.name = "Fading Insanity"
 PhantomicInsanity.hash = "FadingInsanity"
 PhantomicInsanity.tagline = "A modified tolerable version of Phantomic Insanity"
+PhantomicInsanity.tags = {"Insanity", "Fading", "Insanely difficult"}
 
 
 function PhantomicInsanity:new(secret_inputs)
