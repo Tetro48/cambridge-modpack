@@ -26,7 +26,18 @@ function PhantomicInsanity:new(secret_inputs)
 	self.next_queue_window = 60
 	self.hold_age = 0
 	self.lock_flash = false
-	
+
+	local random_number = love.math.random(0, 100)
+	if random_number < 20 then
+		self.rpc_details = "Can't hear next pieces"
+	elseif random_number < 40 then
+		self.rpc_details = "Has difficulty seeing"
+	elseif random_number < 70 then
+		self.rpc_details = "Just insane"
+	else
+		self.rpc_details = "Trying to memorize"
+	end
+
 	self.SGnames = {
 		"S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9",
 		"M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9",
@@ -46,6 +57,7 @@ function PhantomicInsanity:new(secret_inputs)
 
 	if secret_inputs.hold then
 		self.lock_flash = true
+		self.rpc_details = "Trying to glance lock flash borders"
 	end
 end
 
@@ -309,12 +321,16 @@ function PhantomicInsanity:drawScoringInfo()
 	love.graphics.setFont(font_3x5_3)
 	love.graphics.printf(getLetterGrade(math.floor(self.grade)), text_x, 140, 90, "left")
 	love.graphics.printf(self.score, text_x, 220, 90, "left")
+	if self.lock_flash == true then
+		love.graphics.setColor(1, 1, 0, 1)
+	end
 	love.graphics.printf(self.level, text_x, 340, 50, "right")
 	if self.clear then
 		love.graphics.printf(self.level, text_x, 370, 50, "right")
 	else
 		love.graphics.printf(math.floor(self.level / 100 + 1) * 100, text_x, 370, 50, "right")
 	end
+	love.graphics.setColor(1, 1, 1, 1)
 	
 	if sg >= 5 then
 		love.graphics.printf(self.SGnames[sg], 240, 450, 180, "left")

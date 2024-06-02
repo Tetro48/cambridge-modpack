@@ -23,6 +23,17 @@ function PhantomicInsanity:new()
 	self.roll_frames = 0
 	self.combo = 1
 	self.roll_points = 0
+
+	local random_number = love.math.random(0, 100)
+	if random_number < 20 then
+		self.rpc_details = "Can't hear next pieces"
+	elseif random_number < 40 then
+		self.rpc_details = "Has difficulty seeing"
+	elseif random_number < 70 then
+		self.rpc_details = "Just insane"
+	else
+		self.rpc_details = "Trying to memorize"
+	end
 	
 	self.SGnames = {
 		"S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9",
