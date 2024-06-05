@@ -24,7 +24,7 @@ function PhantomicInsanity:new()
 	self.combo = 1
 	self.roll_points = 0
 
-	local random_number = love.math.random(0, 100)
+	local random_number = love.math.newRandomGenerator(os.time()):random(0, 100)
 	if random_number < 20 then
 		self.rpc_details = "Can't hear next pieces"
 	elseif random_number < 40 then
