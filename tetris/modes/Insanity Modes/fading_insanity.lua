@@ -5,16 +5,16 @@ local Piece = require 'tetris.components.piece'
 
 local History6RollsRandomizer = require 'tetris.randomizers.history_6rolls_35bag'
 
-local PhantomicInsanity = GameMode:extend()
+local FadingInsanity = GameMode:extend()
 
-PhantomicInsanity.name = "Fading Insanity"
-PhantomicInsanity.hash = "FadingInsanity"
-PhantomicInsanity.tagline = "A modified tolerable version of Phantomic Insanity"
-PhantomicInsanity.tags = {"Insanity", "Fading", "Insanely difficult"}
+FadingInsanity.name = "Fading Insanity"
+FadingInsanity.hash = "FadingInsanity"
+FadingInsanity.tagline = "A modified tolerable version of Phantomic Insanity"
+FadingInsanity.tags = {"Insanity", "Fading", "Insanely difficult"}
 
 
-function PhantomicInsanity:new(secret_inputs)
-	PhantomicInsanity.super:new(secret_inputs)
+function FadingInsanity:new(secret_inputs)
+	FadingInsanity.super:new(secret_inputs)
 	-- switchBGMLoop(10)
 	self.grade = 0
 	self.garbage = 0
@@ -61,39 +61,39 @@ function PhantomicInsanity:new(secret_inputs)
 	end
 end
 
-function PhantomicInsanity:getARE()
+function FadingInsanity:getARE()
 	return 6
 end
 
-function PhantomicInsanity:getLineARE()
+function FadingInsanity:getLineARE()
 	return 5
 end
 
-function PhantomicInsanity:getDasLimit()
+function FadingInsanity:getDasLimit()
 	return 5
 end
 
-function PhantomicInsanity:getLineClearDelay()
+function FadingInsanity:getLineClearDelay()
 	return 4
 end
 
-function PhantomicInsanity:getLockDelay()
+function FadingInsanity:getLockDelay()
 	return 8
 end
 
-function PhantomicInsanity:getGravity()
+function FadingInsanity:getGravity()
 	return 999
 end
 
-function PhantomicInsanity:getGarbageLimit()
+function FadingInsanity:getGarbageLimit()
 	return 6
 end
 
-function PhantomicInsanity:getSkin()
+function FadingInsanity:getSkin()
 	return "bone"
 end
 
-function PhantomicInsanity:hitTorikan(old_level, new_level)
+function FadingInsanity:hitTorikan(old_level, new_level)
 	if old_level < 300 and new_level >= 300 and self.frames > frameTime(1,35) then
 		self.level = 300
 		return true
@@ -113,7 +113,7 @@ function PhantomicInsanity:hitTorikan(old_level, new_level)
 	return false
 end
 
-function PhantomicInsanity:advanceOneFrame()
+function FadingInsanity:advanceOneFrame()
 	if self.clear then
 		self.roll_frames = self.roll_frames + 1
 		if self.roll_frames < 0 then
@@ -134,12 +134,12 @@ function PhantomicInsanity:advanceOneFrame()
 	return true
 end
 
-function PhantomicInsanity:whilePieceActive()
+function FadingInsanity:whilePieceActive()
 	self.next_queue_window = self.next_queue_window - 1
 	self.hold_age = self.hold_age + 1
 end
 
-function PhantomicInsanity:onPieceEnter()
+function FadingInsanity:onPieceEnter()
 	self.next_queue_window = 6
 	if (self.level % 100 ~= 99) and not self.clear and self.frames ~= 0 then
 		self.level = self.level + 1
@@ -150,7 +150,7 @@ local cleared_row_levels = {1, 2, 4, 6}
 local torikan_roll_points = {10, 20, 30, 100}
 local big_roll_points = {10, 20, 100, 200}
 
-function PhantomicInsanity:onLineClear(cleared_row_count)
+function FadingInsanity:onLineClear(cleared_row_count)
 	if not self.clear then
 		local new_level = self.level + cleared_row_levels[cleared_row_count]
 		self:updateSectionTimes(self.level, new_level)
@@ -178,13 +178,13 @@ function PhantomicInsanity:onLineClear(cleared_row_count)
 	end
 end
 
-function PhantomicInsanity:onPieceLock(piece, cleared_row_count)
+function FadingInsanity:onPieceLock(piece, cleared_row_count)
 	self.super:onPieceLock()
 	if cleared_row_count == 0 then self:advanceBottomRow(1) end
 end
 
 
-function PhantomicInsanity:updateScore(level, drop_bonus, cleared_lines)
+function FadingInsanity:updateScore(level, drop_bonus, cleared_lines)
 	if not self.clear then
 		if cleared_lines > 0 then
 			self.combo = self.combo + (cleared_lines - 1) * 2
@@ -212,7 +212,7 @@ local regret_cutoffs = {
 	frameTime(0,35), frameTime(0,35), frameTime(0,35),
 }
 
-function PhantomicInsanity:updateSectionTimes(old_level, new_level)
+function FadingInsanity:updateSectionTimes(old_level, new_level)
 	if math.floor(old_level / 100) < math.floor(new_level / 100) then
 		local section = math.floor(old_level / 100) + 1
 		local section_time = self.frames - self.section_start_time
@@ -234,7 +234,7 @@ function PhantomicInsanity:updateSectionTimes(old_level, new_level)
 	end
 end
 
-function PhantomicInsanity:advanceBottomRow(dx)
+function FadingInsanity:advanceBottomRow(dx)
 	if self.level >= 500 and self.level < 1000 then
 		self.garbage = math.max(self.garbage + dx, 0)
 		if self.garbage >= self:getGarbageLimit() then
@@ -244,19 +244,19 @@ function PhantomicInsanity:advanceBottomRow(dx)
 	end
 end
 
-function PhantomicInsanity:onHold()
+function FadingInsanity:onHold()
 	self.super:onHold()
 	self.hold_age = 0
 end
 
-PhantomicInsanity.rollOpacityFunction = function(age)
+FadingInsanity.rollOpacityFunction = function(age)
 	if age > 12 then return 0
 	else return 1 - age / 12 end
 end
 
 
 --The grid is never seen
-function PhantomicInsanity:drawGrid()
+function FadingInsanity:drawGrid()
 	if self.game_over or self.completed then
 		self.grid:draw()
 	else
@@ -265,7 +265,7 @@ function PhantomicInsanity:drawGrid()
 end
 
 --Next piece sounds are stubbed out
-function PhantomicInsanity:playNextSound() end
+function FadingInsanity:playNextSound() end
 
 local function getLetterGrade(grade)
 	if grade == 0 then
@@ -278,16 +278,16 @@ local function getLetterGrade(grade)
 end
 
 
-function PhantomicInsanity:setNextOpacity(i)
+function FadingInsanity:setNextOpacity(i)
 	love.graphics.setColor(1, 1, 1, math.min(self.next_queue_window / 6, 1))
 end
 
 --Memory hold.
-function PhantomicInsanity:setHoldOpacity()
+function FadingInsanity:setHoldOpacity()
 	love.graphics.setColor(1, 1, 1, 1-self.hold_age/6)
 end
 
-function PhantomicInsanity:sectionColourFunction(section)
+function FadingInsanity:sectionColourFunction(section)
 	if self.coolregrets[section] == 2 then
 		return { 0, 1, 0, 1 }
 	elseif self.coolregrets[section] == 0 then
@@ -297,8 +297,8 @@ function PhantomicInsanity:sectionColourFunction(section)
 	end
 end
 
-function PhantomicInsanity:drawScoringInfo()
-	PhantomicInsanity.super.drawScoringInfo(self)
+function FadingInsanity:drawScoringInfo()
+	FadingInsanity.super.drawScoringInfo(self)
 
 	love.graphics.setColor(1, 1, 1, 1)
 
@@ -339,11 +339,11 @@ function PhantomicInsanity:drawScoringInfo()
 	end
 end
 
-function PhantomicInsanity:getBackground()
+function FadingInsanity:getBackground()
 	return math.floor(self.level / 100)
 end
 
-function PhantomicInsanity:getHighscoreData()
+function FadingInsanity:getHighscoreData()
 	return {
 		level = self.level,
 		frames = self.frames,
@@ -352,4 +352,4 @@ function PhantomicInsanity:getHighscoreData()
 	}
 end
 
-return PhantomicInsanity
+return FadingInsanity
