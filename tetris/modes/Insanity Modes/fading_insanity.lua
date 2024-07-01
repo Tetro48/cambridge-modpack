@@ -98,15 +98,15 @@ function PhantomicInsanity:hitTorikan(old_level, new_level)
 		self.level = 300
 		return true
 	end
-	if old_level < 500 and new_level >= 500 and self.frames > frameTime(2,22) then
+	if old_level < 500 and new_level >= 500 and self.frames > frameTime(2,35) then
 		self.level = 500
 		return true
 	end
-	if old_level < 800 and new_level >= 800 and self.frames > frameTime(3,15) then
+	if old_level < 800 and new_level >= 800 and self.frames > frameTime(4,08) then
 		self.level = 800
 		return true
 	end
-	if old_level < 1000 and new_level >= 1000 and self.frames > frameTime(4,45) then
+	if old_level < 1000 and new_level >= 1000 and self.frames > frameTime(5,00) then
 		self.level = 1000
 		return true
 	end
