@@ -154,7 +154,9 @@ function PhantomicInsanity:onLineClear(cleared_row_count)
 	if not self.clear then
 		local new_level = self.level + cleared_row_levels[cleared_row_count]
 		self:updateSectionTimes(self.level, new_level)
-		if new_level >= 1300 or self:hitTorikan(self.level, new_level) then
+		if self:hitTorikan(self.level, new_level) then
+			self.game_over = true
+		elseif new_level >= 1300 then
 			if new_level >= 1300 then
 				self.level = 1300
 				self.big_mode = true
@@ -255,7 +257,7 @@ end
 
 --The grid is never seen
 function PhantomicInsanity:drawGrid()
-	if self.game_over or self.completed or (self.clear and self.level < 1300) then
+	if self.game_over or self.completed then
 		self.grid:draw()
 	else
 		self.grid:drawInvisible(self.rollOpacityFunction, self.rollOpacityFunction, self.lock_flash)
