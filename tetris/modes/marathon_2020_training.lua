@@ -12,7 +12,7 @@ Marathon2020Game.hash = "Marathon2020Training"
 Marathon2020Game.tagline = "2020 levels of pure pain! Can you achieve the World Master rank?"
 
 function Marathon2020Game:new(secrets)
-	Marathon2020Game.super:new(secrets)
+	Marathon2020Game.super.new(self, secrets)
 	
 	self.lock_drop = true
 	self.lock_hard_drop = true

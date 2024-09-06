@@ -15,7 +15,7 @@ PhantomMania2Game.tagline = "The blocks disappear even faster now! Can you make 
 
 
 function PhantomMania2Game:new(secrets)
-	PhantomMania2Game.super:new(secrets)
+	PhantomMania2Game.super.new(self, secrets)
 	self.grade = 0
 	self.garbage = 0
 	self.clear = false

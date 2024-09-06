@@ -13,7 +13,7 @@ TrainingSurvivalA3Game.tagline = "The blocks turn black and white and invisible 
 
 
 function TrainingSurvivalA3Game:new(secrets)
-	TrainingSurvivalA3Game.super:new(secrets)
+	TrainingSurvivalA3Game.super.new(self, secrets)
 	self.grade = 0
 	self.garbage = 0
 	self.clear = false
