@@ -213,6 +213,9 @@ function framework:loadVariables()
 				end
 			end
 		end
+		if type(value.default) == "boolean" and type(self[value.internal_variable_name]) ~= "boolean" then
+			self[value.internal_variable_name] = value.default
+		end
 		if self[value.internal_variable_name] == nil or wipe_menu_config then
 			self[value.internal_variable_name] = value.default ~= nil and value.default or 1
 		end
@@ -257,7 +260,7 @@ function framework:update(inputs, ruleset)
 		end
 		local config_obj = self.config_settings[self.selection]
 		local var = self[config_obj.internal_variable_name]
-		if var == true or var == false then
+		if type(var) == "boolean" then
 			if self:menuDASInput(inputs["left"], "left") or self:menuDASInput(inputs["right"], "right") then
 				self[config_obj.internal_variable_name] = not self[config_obj.internal_variable_name]
 			end
