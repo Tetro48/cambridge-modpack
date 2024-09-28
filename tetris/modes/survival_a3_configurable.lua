@@ -134,7 +134,7 @@ function TrainingSurvivalA3Game:getGarbageLimit()
 end
 
 function TrainingSurvivalA3Game:getSkin()
-	return self.level >= 1000 or self.force_bone and "bone" or "2tie"
+	return (self.level >= 1000 or self.force_bone) and "bone" or "2tie"
 end
 
 function TrainingSurvivalA3Game:hitTorikan(old_level, new_level)
