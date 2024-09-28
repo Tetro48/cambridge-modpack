@@ -13,11 +13,15 @@ PhantomicInsanity.tagline = "The blocks are never seen and never heard! How far 
 PhantomicInsanity.tags = {"Insanity", "Invisible", "Near-impossible"}
 
 
+if loadSound then
+	loadSound("res/se/warn_garbage.wav", "warn_garbage")
+end
+
 function PhantomicInsanity:new()
 	PhantomicInsanity.super:new()
-	-- switchBGMLoop(10)
 	self.grade = 0
 	self.garbage = 0
+	self.garbage_warning = 0
 	self.clear = false
 	self.completed = false
 	self.roll_frames = 0
@@ -119,6 +123,10 @@ function PhantomicInsanity:advanceOneFrame()
 			self.roll_points = self.level >= 1300 and self.roll_points + 150 or self.roll_points
 			self.grade = self.grade + math.floor(self.roll_points / 100)
 			self.completed = true
+		end
+	elseif self.ready_frames == 1 then
+		if bgm[10] then
+			switchBGMLoop(10)
 		end
 	elseif self.ready_frames == 0 then
 		self.frames = self.frames + 1
@@ -226,10 +234,19 @@ end
 function PhantomicInsanity:advanceBottomRow(dx)
 	if self.level >= 500 and self.level < 1000 then
 		self.garbage = math.max(self.garbage + dx, 0)
+		if self.garbage == self:getGarbageLimit() - 4 and self.garbage_warning < 1 then
+			self.garbage_warning = 1
+			playSE("warn_garbage")
+		elseif self.garbage == self:getGarbageLimit() - 2 and self.garbage_warning < 2 then
+			self.garbage_warning = 2
+		end
 		if self.garbage >= self:getGarbageLimit() then
 			self.grid:copyBottomRow()
 			self.garbage = 0
+			self.garbage_warning = 0
 		end
+	else
+		self.garbage_warning = 0
 	end
 end
 
@@ -306,6 +323,11 @@ function PhantomicInsanity:drawScoringInfo()
 				self.coolregret_timer = self.coolregret_timer - 1
 		end
 
+	love.graphics.setColor(1, 0, 0, 1)
+	if self.garbage_warning > 0 then
+		love.graphics.printf(string.rep("!", self.garbage_warning), font_3x5_4, 64, 80, 160, "center")
+	end
+	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(font_3x5_3)
 	love.graphics.printf(getLetterGrade(math.floor(self.grade)), text_x, 140, 90, "left")
 	love.graphics.printf(self.score, text_x, 220, 90, "left")
