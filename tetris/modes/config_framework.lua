@@ -164,10 +164,10 @@ function framework:putMissingVars()
 	end
 end
 
-function framework:drawMenuSection(text, value, selection, shown_selection, show_arrows, low_limit, high_limit)
-	if show_arrows == nil then show_arrows = true end
+function framework:drawMenuSection(text, value, selection, shown_selection, show_left_arrows, show_right_arrows)
+	if show_left_arrows == nil then show_left_arrows = true end
+	if show_right_arrows == nil then show_right_arrows = true end
 	if value == nil then return end
-	local is_value_bool = type(value) == "boolean"
 	love.graphics.setFont(font_3x5_2)
 	if self.selection == selection then
 		love.graphics.setColor(1, 1, 0, 1)
@@ -175,13 +175,11 @@ function framework:drawMenuSection(text, value, selection, shown_selection, show
 	love.graphics.printf(text, 65, 85 + 15 * shown_selection, 160, "left")
 
 	love.graphics.setColor(1, 1, 1, 1)
-	if show_arrows then
-		if is_value_bool or not high_limit or value < high_limit then
-			love.graphics.polygon("fill", 225, 89 + 15 * shown_selection, 225, 99 + 15 * shown_selection, 230, 94 + 15 * shown_selection)
-		end
-		if is_value_bool or not low_limit or value > low_limit then
-			love.graphics.polygon("fill", 63, 89 + 15 * shown_selection, 63, 99 + 15 * shown_selection, 58, 94 + 15 * shown_selection)
-		end
+	if show_right_arrows then
+		love.graphics.polygon("fill", 225, 89 + 15 * shown_selection, 225, 99 + 15 * shown_selection, 230, 94 + 15 * shown_selection)
+	end
+	if show_left_arrows then
+		love.graphics.polygon("fill", 63, 89 + 15 * shown_selection, 63, 99 + 15 * shown_selection, 58, 94 + 15 * shown_selection)
 	end
 	love.graphics.printf(value, 60, 85 + 15 * shown_selection, 160, "right")
 end
@@ -384,6 +382,7 @@ function framework:drawConfigMenu()
 		i = i - 1
 		if math.floor(i / self.menu_sections_per_page) == math.floor((self.selection - 1) / self.menu_sections_per_page) then
 			local var = self[config_obj.internal_variable_name]
+			local show_left_arrows, show_right_arrows = not config_obj.low_limit or var > config_obj.low_limit, not config_obj.high_limit or var < config_obj.high_limit
 			local out_value = var
 			if type(config_obj.format) == "function" then
 				out_value = config_obj.format(var)
@@ -391,8 +390,13 @@ function framework:drawConfigMenu()
 				out_value = config_obj.format:format(var)
 			elseif type(var) == "boolean" then
 				out_value = self.boolToString(var)
+				show_left_arrows, show_right_arrows = true, true
 			end
-			self:drawMenuSection(config_obj.setting_title, out_value, i + 1, i % self.menu_sections_per_page + 1, config_obj.arrows, config_obj.low_limit, config_obj.high_limit)
+			if config_obj.arrows == false then
+				show_left_arrows, show_right_arrows = false, false
+			end
+			self:drawMenuSection(config_obj.setting_title, out_value, i + 1, i % self.menu_sections_per_page + 1,
+			show_left_arrows, show_right_arrows)
 		end
 	end
 	if #self.config_settings > self.menu_sections_per_page then
