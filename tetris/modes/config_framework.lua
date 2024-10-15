@@ -7,7 +7,6 @@ framework.tagline = "The framework to set up built-in mode config."
 framework.hash = "cfgfw"
 framework.tags = {"Configurable"}
 
-local local_replay_vars = {}
 local loaded_vars = false
 local wipe_menu_config
 
@@ -229,14 +228,14 @@ function framework:update(inputs, ruleset)
 	if self.in_menu then
 		local maxSelection = #self.config_settings
 		self:loadVariables()
-		if scene.replay ~= nil and self.selection < maxSelection then
+		if scene.replay ~= nil then
 			if self.replay_frames == 1 then
 				for key, value in pairs(scene.replay.inputs[1].variables) do
 					self[key] = value
 				end
 			end
 			self.replay_frames = self.replay_frames + 1
-			if self.replay_frames % 15 == 14 then
+			if self.replay_frames % 15 == 14 and self.selection < maxSelection then
 				inputs["down"] = true
 			else
 				inputs["down"] = false
@@ -278,19 +277,20 @@ function framework:update(inputs, ruleset)
 			self.in_menu = false
 			self.ready_frames = 100
 			self.save_replay = config.gamesettings.save_replay == 1 and not scene.replay
+			local local_config_vars = {}
+			for key, value in pairs(self.config_settings) do
+				local_config_vars[value.internal_variable_name] = self[value.internal_variable_name]
+			end
 			if self.save_replay then
 				local new_inputs = {}
 				new_inputs["inputs"] = {}
-				for key, value in pairs(self.config_settings) do
-					local_replay_vars[value.internal_variable_name] = self[value.internal_variable_name]
-				end
-				new_inputs["variables"] = local_replay_vars
+				new_inputs["variables"] = local_config_vars
 				new_inputs["frames"] = #self.config_settings * 15 + 60
-				self.replay_inputs[#self.replay_inputs + 1] = new_inputs
+				self.replay_inputs[1] = new_inputs
 			end
 			self:onStart()
 			config.mode_config = config.mode_config or {}
-			config.mode_config[self.hash] = local_replay_vars
+			config.mode_config[self.hash] = local_config_vars
 			saveConfig()
 		end
 		return
