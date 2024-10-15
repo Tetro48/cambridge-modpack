@@ -1,6 +1,6 @@
 local default_gamemode = require 'tetris.modes.gamemode'
 
---Any modes extending the config must put self.super:functionName()
+--Any modes extending the config must put self.super.functionName(self, ...)
 local framework = default_gamemode:extend()
 framework.name = "Config Framework"
 framework.tagline = "The framework to set up built-in mode config."
