@@ -5,7 +5,7 @@ local History6RollsRandomizer = require "tetris.randomizers.history_6rolls_35bag
 local LongEndurance = GameMode:extend()
 LongEndurance.name = "Long Endurance"
 LongEndurance.hash = "LongEndurance"
-LongEndurance.tagline = "An endurance mode where you can also save the game state by exiting, and is kinda replay compatible"
+LongEndurance.tagline = "A Desert Bus-esque endurance mode where you can also save the game state by exiting. It auto-pauses when resuming from loading game state, as to not instantly game over."
 LongEndurance.tags = {"Endurance", "Includes Save Data"}
 --Amount of lines to get to the next level
 LongEndurance.level_milestones = {
@@ -22,6 +22,8 @@ LongEndurance.level_milestones = {
 }
 local playedReadySE = false
 local playedGoSE = false
+
+local binser = require "libs.binser"
 
 function LongEndurance:new(secret, ...)
 	if secret.generic_1 and secret.generic_3 and secret.generic_4 and not secret.generic_2 then
@@ -42,6 +44,10 @@ function LongEndurance:new(secret, ...)
 	self.ready_frames = 60
 	self.ending_lines = 11250;
 
+	self.visual_rng = love.math.newRandomGenerator(os.time())
+
+	self.falling_text_table = {}
+
 	self.replay_mode = scene.title == "Replay" or scene.title == "Replays"
 	if not (config.mode_states and config.mode_states.long_endurance) or self.replay_mode then
 		self.first_init = true
@@ -51,9 +57,26 @@ function LongEndurance:new(secret, ...)
 	self.randomizer = History6RollsRandomizer()
 end
 
+local function expDecay(a, b, decay, dt)
+	return b+(a-b)*math.exp(-decay*dt)
+end
+
+function LongEndurance:getSaveData()
+	local id = self.ruleset.name .. self.ruleset.hash
+	if config.mode_states.long_endurance[id] then
+		local cfg_game_data = config.mode_states.long_endurance[id]
+		config.mode_states.long_endurance[id] = nil
+		return cfg_game_data
+	end
+	if love.filesystem.getInfo("saves/long_endurance-"..id..".sav", "file") then
+		local contents = love.filesystem.read("saves/long_endurance-"..id..".sav")
+		return binser.d(contents)[1]
+	end
+end
+
 function LongEndurance:initialize(ruleset)
 	self.ruleset = ruleset
-	local game_state = config.mode_states.long_endurance[self.ruleset.name .. self.ruleset.hash]
+	local game_state = self:getSaveData()
 	if not (self.replay_mode or self.first_init) and game_state and not self.wipe_save then
 		self.game_state = game_state
 		if self.game_state.piece then
@@ -70,10 +93,15 @@ function LongEndurance:initialize(ruleset)
 		self.replay_inputs = self.game_state.replay_inputs
 		self.next_queue = self.game_state.next_queue
 		self.ready_frames = 0
-		self.are = self.game_state.delays.are
-		self.lcd = self.game_state.delays.lcd
-		self.das = self.game_state.delays.das
-		self.ready_frames = self.game_state.ready_frames
+		if self.game_state.delays then
+			self.are = self.game_state.delays.are
+			self.lcd = self.game_state.delays.lcd
+			self.das = self.game_state.delays.das
+		else
+			self.save_replay = config.gamesettings.save_replay == 1 and self.game_state.replay_inputs and self.game_state.replay_inputs.inputs and self.game_state.replay_inputs.inputs[1]
+			self.game_over = true
+		end
+		self.ready_frames = self.game_state.ready_frames or 0
 		if scene.title ~= "Game" then
 			playSE("go")
 		else
@@ -112,7 +140,6 @@ function LongEndurance:initialize(ruleset)
 				droughts = self.randomizer.droughts;
 			};
 		}
-		config.mode_states.long_endurance[self.ruleset.name .. self.ruleset.hash] = self.game_state
 	end
 	-- generate next queue
 	self.used_randomizer = (
@@ -137,7 +164,43 @@ function LongEndurance:playNextSound(ruleset)
 	end
 end
 
+
+function LongEndurance:onPieceLock(piece, cleared_row_count)
+	if cleared_row_count > 0 then
+		local score_increment = (({1, 3, 7, 15, 20})[cleared_row_count] or -10) * (self.game_state.level + 1)
+		if self.lines + cleared_row_count >= self.level_milestones[self.game_state.level + 1] then
+			score_increment = (({1, 3, 7, 15, 20})[cleared_row_count] or -10) * (self.game_state.level + 2)
+		end
+		table.insert(self.falling_text_table, {
+			text = string.format("(%s%d)", score_increment > 0 and "+" or "", score_increment);
+			x = 64 + piece.position.x * 16;
+			y = -16 + piece.position.y * 16;
+			r = 0;
+			scale = 0.1;
+			delay = 30;
+			vy = -3;
+			vx = self.visual_rng:random(-16, 16) / 4;
+			vr = self.visual_rng:random(-16, 16) / 400;
+		})
+	end
+end
+
 function LongEndurance:advanceOneFrame(inputs, ruleset)
+	for key, txt in pairs(self.falling_text_table) do
+		txt.scale = expDecay(txt.scale, 1, 30, 1/60)
+		if txt.delay <= 0 then
+			txt.x = txt.x + txt.vx
+			txt.y = txt.y + txt.vy
+			txt.r = txt.r + txt.vr
+			txt.vx = txt.vx * 0.95
+			txt.vy = txt.vy + 0.2
+			if txt.y > 999 then
+				self.falling_text_table[key] = nil
+			end
+		else
+			txt.delay = txt.delay - 1
+		end
+	end
 	if self.ready_frames == 0 then
 		self.frames = self.frames + 1
 	end
@@ -304,12 +367,15 @@ function LongEndurance:onExit()
 		self.game_state.pause_time = self.pause_time
 		self.game_state.delays = {are = self.are, lcd = self.lcd, das = self.das}
 		self.game_state.ready_frames = self.ready_frames
+		local id = self.ruleset.name .. self.ruleset.hash
 		if self.game_over or self.completed then
 			--wipe the data at game over
-			for key, value in next, self.game_state do
-				self.game_state[key] = nil
+			love.filesystem.remove("saves/long_endurance-"..id..".sav")
+		else
+			if not love.filesystem.getInfo("saves", "directory") then
+				love.filesystem.createDirectory("saves")
 			end
-			config.mode_states.long_endurance = nil
+			love.filesystem.write("saves/long_endurance-"..id..".sav", binser.s(self.game_state))
 		end
 		saveConfig()
 	end
@@ -376,6 +442,7 @@ function LongEndurance:drawScoringInfo()
 	love.graphics.printf("LINES", 240, 200, 40, "left")
 	love.graphics.printf("SCORE", 240, 320, 40, "left")
 	
+
 	love.graphics.setFont(font_3x5_3)
 	love.graphics.printf(self.game_state.level .. "/26", 240, 140, 120, "left")
 	love.graphics.printf(self.lines .. "/" .. self.level_milestones[self.game_state.level+1], 240, 220, 160, "left")
@@ -391,6 +458,11 @@ function LongEndurance:drawScoringInfo()
 		strTrueValues(self.prev_inputs) ..
 		self.drop_bonus
 	)
+
+	love.graphics.setFont(font_3x5_2)
+	for key, txt in pairs(self.falling_text_table) do
+		love.graphics.printf(txt.text, txt.x, txt.y, 200, "center", txt.r, txt.scale, txt.scale, 100, font_3x5_2:getHeight()/2)
+	end
 end
 
 return LongEndurance
