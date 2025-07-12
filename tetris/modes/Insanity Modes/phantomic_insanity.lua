@@ -9,12 +9,16 @@ local PhantomicInsanity = GameMode:extend()
 
 PhantomicInsanity.name = "Phantomic Insanity"
 PhantomicInsanity.hash = "PhantomicInsanity"
-PhantomicInsanity.tagline = "The blocks are never seen and never heard! How far can you go in this?"
+PhantomicInsanity.tagline = "The ultimate challenge of determination, swift reaction, and the invisible hold abuse"
 PhantomicInsanity.tags = {"Insanity", "Invisible", "Near-impossible"}
 
 
 if loadSound then
 	loadSound("res/se/warn_garbage.wav", "warn_garbage")
+end
+
+if loadBGM then
+	loadBGM("res/bgm/track11.mp3", 11)
 end
 
 function PhantomicInsanity:new()
@@ -125,7 +129,9 @@ function PhantomicInsanity:advanceOneFrame()
 			self.completed = true
 		end
 	elseif self.ready_frames == 1 then
-		if bgm[10] then
+		if bgm[11] and self.hash == "PhantomicInsanity" then
+			switchBGMLoop(11)
+		else
 			switchBGMLoop(10)
 		end
 	elseif self.ready_frames == 0 then
