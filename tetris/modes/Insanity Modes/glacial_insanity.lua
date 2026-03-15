@@ -14,7 +14,8 @@ GlacialInsanity.tags = {"Insanity", "Freezing Blocks", "Near-impossible"}
 
 
 if loadSound then
-	loadSound("res/se/warn_garbage.wav", "warn_garbage")
+	loadSound("res/se/warn_ice.wav", "warn_ice")
+	loadSound("res/se/total_freeze.wav", "total_freeze")
 end
 
 if loadBGM then
@@ -227,8 +228,8 @@ function PikiiGrid:updateMikii(delay)
 end
 
 
-function GlacialInsanity:new(...)
-	GlacialInsanity.super.new(self, ...)
+function GlacialInsanity:new(secrets, ...)
+	GlacialInsanity.super.new(self, secrets, ...)
 	self.grid = PikiiGrid(10, 24)
 	self.grade = 0
 	self.last_pikii_row_count = 0
@@ -240,8 +241,10 @@ function GlacialInsanity:new(...)
 		quads = 0;
 		pikii = 0;
 	}
+	self.line_clears = {}
 	self.ice_accum = 0
 	self.ice_warning = 0
+	self.ice_removed = 0
 	self.clear = false
 	self.completed = false
 	self.roll_frames = 0
@@ -277,6 +280,12 @@ function GlacialInsanity:new(...)
 	self.coolregret_message = ""
 	self.coolregret_timer = 0
 	self.coolregrets = { [0] = 0 }
+
+	if secrets.generic_1 then
+		self.medals.pikii = 10
+		self.level = 500
+		self.grid.pikii_height = 25
+	end
 end
 
 function GlacialInsanity:initialize(ruleset)
@@ -368,7 +377,7 @@ function GlacialInsanity:advanceOneFrame()
 		end
 		if self.roll_frames < 0 then
 			if self.roll_frames + 1 == -1530 then
-				if bgm["gm4_master_body"] and bgm["gm4_master_body"][6] and bgm["gm4_master_head"] and bgm["gm4_master_head"][6] then
+				if self.gm4_music_mode and bgm["gm4_master_body"] and bgm["gm4_master_body"][6] and bgm["gm4_master_head"] and bgm["gm4_master_head"][6] then
 					self:playBGMLevel(6)
 				else
 					switchBGM("credit_roll", "gm3")
@@ -505,14 +514,20 @@ end
 
 function GlacialInsanity:onPieceLock(piece, cleared_row_count)
 	self.super:onPieceLock()
-	if cleared_row_count == 0 then self:advanceBottomRow(1) end
+	if cleared_row_count == 0 then
+		self:advanceBottomRow(1)
+	else
+		self.line_clears[cleared_row_count] = (self.line_clears[cleared_row_count] or 0) + 1
+	end
 	if cleared_row_count == 3 then
 		if self.level >= 500 then
+			self.ice_removed = self.ice_removed + 1
 			self.grid:clearBottomRows(1)
 		end
 	elseif cleared_row_count >= 4 then
 		self.medals.quads = self.medals.quads + 1
 		if self.level >= 500 then
+			self.ice_removed = self.ice_removed + 2
 			self.grid:clearBottomRows(2)
 		end
 	end
@@ -598,12 +613,13 @@ function GlacialInsanity:advanceBottomRow(dx)
 		self.ice_accum = math.max(self.ice_accum + dx, 0)
 		if self.ice_accum >= self:getGarbageLimit() - 4 and self.ice_warning < 1 then
 			self.ice_warning = 1
-			playSE("warn_garbage")
+			playSE("warn_ice")
 		elseif self.ice_accum >= self:getGarbageLimit() - 2 and self.ice_warning < 2 then
 			self.ice_warning = 2
 		end
 		if self.ice_accum >= self:getGarbageLimit() then
 			self.grid:updateMikii(0)
+			playSE("total_freeze")
 			self.ice_accum = 0
 			self.ice_warning = 0
 		end
@@ -694,6 +710,33 @@ function GlacialInsanity.easeInSine(x)
 	return 1 - math.cos((x * math.pi) / 2);
 end
 
+function GlacialInsanity:onGameOver()
+	self.super.onGameOver(self)
+	love.graphics.setColor(1, 1, 1, 1)
+	if self.game_over_frames > 180 then
+		love.graphics.printf("STATISTICS", font_8x11_small, 64, 96, 160, "center")
+	end
+	if self.game_over_frames > 210 then
+		love.graphics.printf(string.format([[
+Single Clears: %d
+Double Clears: %d
+Triple Clears: %d
+Quad Clears: %d
+Ice lines removed: %d]],
+self.line_clears[1] or 0,
+self.line_clears[2] or 0,
+self.line_clears[3] or 0,
+self.line_clears[4] or 0, self.ice_removed), font_3x5_2, 64, 128, 160, "center")
+	end
+end
+
+local RED_ENDGAME_SHADER = love.graphics.newShader[[
+	vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords) {
+		vec4 col = texture2D( texture, texture_coords );
+		return vec4(1, col.g * color.g, col.b * color.b, col.a * color.a);
+	}
+]]
+
 function GlacialInsanity:drawScoringInfo()
 	-- GlacialInsanity.super.drawScoringInfo(self)
 
@@ -706,6 +749,12 @@ function GlacialInsanity:drawScoringInfo()
 	
 	love.graphics.setColor(1, 1, 1, 1)
 
+	if config["side_next"] then
+		love.graphics.printf("NEXT", 240, 56, 40, "left")
+	else
+		love.graphics.printf("NEXT", 112, 10, 40, "left")
+	end
+	
 	local text_x = config["side_next"] and 320 or 240
 
 	love.graphics.setFont(font_3x5_2)
@@ -722,12 +771,6 @@ function GlacialInsanity:drawScoringInfo()
 		love.graphics.printf("SECRET GRADE", 240, 430, 180, "left")
 	end
 
-	if config["side_next"] then
-		love.graphics.printf("NEXT", 240, 56, 40, "left")
-	else
-		love.graphics.printf("NEXT", 112, 10, 40, "left")
-	end
-	
 	self:drawSectionTimesWithSplits(math.floor(self.level / 100) + 1)
 
 	if(self.coolregret_timer > 0) then
@@ -735,7 +778,7 @@ function GlacialInsanity:drawScoringInfo()
 				self.coolregret_timer = self.coolregret_timer - 1
 		end
 
-	love.graphics.setColor(1, 0, 0, 1)
+	love.graphics.setColor(0.2, 0.2, 1, 1)
 	if self.ice_warning > 0 then
 		love.graphics.printf(string.rep("!", self.ice_warning), font_3x5_4, 64, 80, 160, "center")
 	end
@@ -763,8 +806,11 @@ function GlacialInsanity:drawScoringInfo()
 		love.graphics.printf("END GAME", 204 - (self.roll_frames + 1530), 160, 160, "center", 0, 4 - ((self.roll_frames + 1530)/20), 1, 80)
 		love.graphics.printf("END GAME", 84 + (self.roll_frames + 1530), 160, 160, "center", 0, 4 - ((self.roll_frames + 1530)/20), 1, 80)
 	elseif self.roll_frames >= -1470 and self.roll_frames < -1230 then
-		love.graphics.setColor(1, 1 - (self.roll_frames + 1470) / 30, 1 - (self.roll_frames + 1470) / 30)
+		local old_shader = love.graphics.getShader()
+		love.graphics.setColor(1, (self.roll_frames + 1470) / 30, (self.roll_frames + 1470) / 30)
+		love.graphics.setShader(RED_ENDGAME_SHADER)
 		love.graphics.printf("END GAME", 144, 160, 160, "center", 0, 1, 1, 80)
+		love.graphics.setShader(old_shader)
 	end
 end
 
