@@ -191,6 +191,12 @@ function PhantomicInsanity:onPieceMove(piece, grid, dx)
 	end
 end
 
+function PhantomicInsanity:onPieceRotate(piece, grid, drot)
+	if drot ~= 0 and not self.legacy_mode then
+		piece.lock_delay = 0
+	end
+end
+
 function PhantomicInsanity:onPieceLock(piece, cleared_row_count)
 	self.super:onPieceLock()
 	if cleared_row_count == 0 then self:advanceBottomRow(1) end
