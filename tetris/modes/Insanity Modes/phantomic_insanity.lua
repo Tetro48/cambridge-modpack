@@ -21,8 +21,12 @@ if loadBGM then
 	loadBGM("res/bgm/track11.mp3", 11)
 end
 
-function PhantomicInsanity:new()
-	PhantomicInsanity.super:new()
+function PhantomicInsanity:new(secrets, replay_properties)
+	PhantomicInsanity.super.new(self, secrets, replay_properties)
+	if secrets.generic_1 or replay_properties and not replay_properties.version then
+		self.legacy_mode = true
+	end
+	self:setReplayProperty("version", 1)
 	self.grade = 0
 	self.garbage = 0
 	self.garbage_warning = 0
@@ -181,6 +185,12 @@ function PhantomicInsanity:onLineClear(cleared_row_count)
 	end
 end
 
+function PhantomicInsanity:onPieceMove(piece, grid, dx)
+	if dx ~= 0 and not self.legacy_mode then
+		piece.lock_delay = 0
+	end
+end
+
 function PhantomicInsanity:onPieceLock(piece, cleared_row_count)
 	self.super:onPieceLock()
 	if cleared_row_count == 0 then self:advanceBottomRow(1) end
@@ -320,6 +330,9 @@ function PhantomicInsanity:drawScoringInfo()
 	local sg = self.grid:checkSecretGrade()
 	if sg >= 5 then 
 		love.graphics.printf("SECRET GRADE", 240, 430, 180, "left")
+	end
+	if self.legacy_mode then
+		love.graphics.printf("LEGACY MODE\nMOVE RESET NOT ENFORCED", text_x, 280, 250, "left")
 	end
 
 	self:drawSectionTimesWithSplits(math.floor(self.level / 100) + 1)

@@ -24,8 +24,8 @@ FadingInsanity.tagline = "A modified tolerable version of Phantomic Insanity"
 FadingInsanity.tags = {"Insanity", "Fading", "Insanely difficult"}
 
 
-function FadingInsanity:new(secret_inputs)
-	FadingInsanity.super.new(self, secret_inputs)
+function FadingInsanity:new(secret_inputs, ...)
+	FadingInsanity.super.new(self, secret_inputs, ...)
 	self.next_queue_window = 60
 	self.hold_age = 0
 	self.lock_flash = false
