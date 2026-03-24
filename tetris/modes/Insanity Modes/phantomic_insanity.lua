@@ -23,7 +23,7 @@ end
 
 function PhantomicInsanity:new(secrets, replay_properties)
 	PhantomicInsanity.super.new(self, secrets, replay_properties)
-	if secrets.generic_1 or replay_properties and not replay_properties.version then
+	if secrets.generic_1 or (replay_properties and not replay_properties.version) then
 		self.legacy_mode = true
 	end
 	self:setReplayProperty("version", 1)
