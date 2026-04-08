@@ -228,8 +228,12 @@ function PikiiGrid:updateMikii(delay)
 end
 
 
-function GlacialInsanity:new(secrets, ...)
-	GlacialInsanity.super.new(self, secrets, ...)
+function GlacialInsanity:new(secrets, replay_properties)
+	GlacialInsanity.super.new(self, secrets, replay_properties)
+	if secrets.generic_2 or (replay_properties and not replay_properties.version) then
+		self.legacy_mode = true
+	end
+	self:setReplayProperty("version", 1)
 	self.grid = PikiiGrid(10, 24)
 	self.grade = 0
 	self.last_pikii_row_count = 0
@@ -250,6 +254,9 @@ function GlacialInsanity:new(secrets, ...)
 	self.roll_frames = 0
 	self.combo = 1
 	self.roll_points = 0
+
+	self.end_game_rollback_duration = self.legacy_mode and -1230 or -630
+	self.end_game_intro_duration = self.legacy_mode and -300 or -180
 
 	local random_number = love.math.newRandomGenerator(os.time()):random(0, 100)
 	if random_number < 20 then
@@ -376,7 +383,7 @@ function GlacialInsanity:advanceOneFrame()
 			self.roll_frames = self.roll_frames + 1
 		end
 		if self.roll_frames < 0 then
-			if self.roll_frames + 1 == -1530 then
+			if self.roll_frames + 1 == self.end_game_rollback_duration + self.end_game_intro_duration then
 				if self.gm4_music_mode and bgm["gm4_master_body"] and bgm["gm4_master_body"][6] and bgm["gm4_master_head"] and bgm["gm4_master_head"][6] then
 					self:playBGMLevel(6)
 				else
@@ -384,10 +391,10 @@ function GlacialInsanity:advanceOneFrame()
 				end
 				return true
 			end
-			if self.roll_frames + 1 == -1230 then
+			if self.roll_frames + 1 == self.end_game_rollback_duration then
 				self:applyBackstep()
-			elseif self.roll_frames + 1 < 0 and self.roll_frames + 1 > -1230 then
-				self:applyBackstep(math.max(0, self.frames - (math.min(self.frames, frameTime(1, 5)) * self.easeInSine((self.roll_frames+1230)/1230))))
+			elseif self.roll_frames + 1 < 0 and self.roll_frames + 1 > self.end_game_rollback_duration then
+				self:applyBackstep(math.max(0, self.frames - (math.min(self.frames, frameTime(1, 5)) * self.easeInSine((self.roll_frames-self.end_game_rollback_duration)/(-self.end_game_rollback_duration)))))
 			end
 			if self.roll_frames + 1 == 0 then
 				self:applyBackstep()
@@ -400,7 +407,9 @@ function GlacialInsanity:advanceOneFrame()
 			switchBGM(nil)
 			self:playBGMLevel(-1)
 			self.roll_points = self.level >= 3000 and self.roll_points + 150 or self.roll_points
-			self.grade = self.grade + math.floor(self.roll_points / 100)
+			if self.grade < 999 then
+				self.grade = self.grade + math.floor(self.roll_points / 100)
+			end
 			self.completed = true
 		end
 	elseif self.ready_frames == 1 then
@@ -485,6 +494,9 @@ local torikan_roll_points = {10, 20, 30, 100}
 local big_roll_points = {10, 20, 100, 200}
 
 function GlacialInsanity:onLineClear(cleared_row_count)
+	if not self.legacy_mode then
+		self:advanceBottomRow(-cleared_row_count / 8)
+	end
 	if not self.clear then
 		local new_level = self.level + (cleared_row_levels[cleared_row_count] or 1) + math.floor((self.medals.pikii / 25) + (self.medals.quads / 10))
 		self:updateSectionTimes(self.level, new_level)
@@ -493,22 +505,43 @@ function GlacialInsanity:onLineClear(cleared_row_count)
 		elseif new_level >= 3000 then
 			self.level = 3000
 			self.clear = true
-			self.roll_frames = -1710
+			self.roll_frames = self.end_game_rollback_duration + self.end_game_intro_duration - (self.legacy_mode and 180 or 120)
 			self.piece = nil
 			switchBGM(nil)
 			self:playBGMLevel(-1)
 		else
 			self.level = math.min(new_level, 3000)
 		end
-		self:advanceBottomRow(-cleared_row_count / 8)
+		if self.legacy_mode then
+			self:advanceBottomRow(-cleared_row_count / 8)
+		end
 	else
 		self.level = self.level + (cleared_row_levels[cleared_row_count] or 1) + math.floor((self.medals.pikii / 25) + (self.medals.quads / 10))
 		if self.big_mode then self.roll_points = self.roll_points + big_roll_points[cleared_row_count / 2]
 		else self.roll_points = self.roll_points + (torikan_roll_points[cleared_row_count] or 100) end
-		if self.roll_points >= 100 then
+		if self.roll_points >= 100 and self.grade < 999 then
 			self.roll_points = self.roll_points - 100
 			self.grade = self.grade + 1
 		end
+		if self.level >= self:getFuzzyLevelRequirement() then
+			self.grade = 999
+		end
+	end
+end
+
+function GlacialInsanity:getFuzzyLevelRequirement()
+	return 3000 + (self.line_clears[4] or 0) * 4 + (self.line_clears[3] or 0) * 3 + (self.line_clears[2] or 0) * 2 + (self.line_clears[1] or 0) * 2 + self.medals.pikii * 10
+end
+
+function GlacialInsanity:onPieceMove(piece, grid, dx)
+	if dx ~= 0 and not self.legacy_mode then
+		piece.lock_delay = 0
+	end
+end
+
+function GlacialInsanity:onPieceRotate(piece, grid, drot)
+	if drot ~= 0 and not self.legacy_mode then
+		piece.lock_delay = 0
 	end
 end
 
@@ -653,8 +686,10 @@ local function getLetterGrade(grade)
 		return "1"
 	elseif grade <= 45 then
 		return "M" .. tostring(grade)
-	else
+	elseif grade < 999 then
 		return "GM" .. tostring(grade - 45)
+	else
+		return "GOD"
 	end
 end
 
@@ -787,9 +822,13 @@ function GlacialInsanity:drawScoringInfo()
 	love.graphics.printf(getLetterGrade(math.floor(self.grade)), text_x, 140, 90, "left")
 	love.graphics.printf(self.score, text_x, 220, 120, "left")
 	love.graphics.printf(self.level, text_x, 340, 50, "right")
-	
+
 	if sg >= 5 then
 		love.graphics.printf(self.SGnames[sg], 240, 450, 180, "left")
+	end
+
+	if self.legacy_mode then
+		love.graphics.printf("LEGACY MODE", text_x, 280, 250, "left")
 	end
 	love.graphics.setFont(font_8x11)
 	if self.clear then
@@ -801,13 +840,14 @@ function GlacialInsanity:drawScoringInfo()
 	else
 		love.graphics.printf(formatTime(self.frames), 64, 420, 160, "center")
 	end
-	if self.roll_frames > -1530 and self.roll_frames < -1470 then
-		love.graphics.setColor(1, 0, 0, self.easeInSine((self.roll_frames + 1530) / 60))
-		love.graphics.printf("END GAME", 204 - (self.roll_frames + 1530), 160, 160, "center", 0, 4 - ((self.roll_frames + 1530)/20), 1, 80)
-		love.graphics.printf("END GAME", 84 + (self.roll_frames + 1530), 160, 160, "center", 0, 4 - ((self.roll_frames + 1530)/20), 1, 80)
-	elseif self.roll_frames >= -1470 and self.roll_frames < -1230 then
+	local end_game_duration = self.end_game_rollback_duration + self.end_game_intro_duration
+	if self.roll_frames > end_game_duration and self.roll_frames < end_game_duration + 60 then
+		love.graphics.setColor(1, 0, 0, self.easeInSine((self.roll_frames - end_game_duration) / 60))
+		love.graphics.printf("END GAME", 204 - (self.roll_frames - end_game_duration), 160, 160, "center", 0, 4 - ((self.roll_frames - end_game_duration)/20), 1, 80)
+		love.graphics.printf("END GAME", 84 + (self.roll_frames - end_game_duration), 160, 160, "center", 0, 4 - ((self.roll_frames - end_game_duration)/20), 1, 80)
+	elseif self.roll_frames >= end_game_duration + 60 and self.roll_frames < self.end_game_rollback_duration then
 		local old_shader = love.graphics.getShader()
-		love.graphics.setColor(1, (self.roll_frames + 1470) / 30, (self.roll_frames + 1470) / 30)
+		love.graphics.setColor(1, (self.roll_frames - end_game_duration - 60) / 30, (self.roll_frames - end_game_duration - 60) / 30)
 		love.graphics.setShader(RED_ENDGAME_SHADER)
 		love.graphics.printf("END GAME", 144, 160, 160, "center", 0, 1, 1, 80)
 		love.graphics.setShader(old_shader)
