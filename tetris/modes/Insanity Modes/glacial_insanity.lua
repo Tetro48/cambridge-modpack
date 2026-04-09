@@ -805,6 +805,9 @@ function GlacialInsanity:drawScoringInfo()
 	if sg >= 5 then 
 		love.graphics.printf("SECRET GRADE", 240, 430, 180, "left")
 	end
+	if self.legacy_mode then
+		love.graphics.printf("LEGACY MODE", text_x, 300, 250, "left")
+	end
 
 	self:drawSectionTimesWithSplits(math.floor(self.level / 100) + 1)
 
@@ -827,9 +830,6 @@ function GlacialInsanity:drawScoringInfo()
 		love.graphics.printf(self.SGnames[sg], 240, 450, 180, "left")
 	end
 
-	if self.legacy_mode then
-		love.graphics.printf("LEGACY MODE", text_x, 280, 250, "left")
-	end
 	love.graphics.setFont(font_8x11)
 	if self.clear then
 		if self.roll_frames < 0 then
