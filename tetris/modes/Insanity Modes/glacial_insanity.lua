@@ -233,7 +233,10 @@ function GlacialInsanity:new(secrets, replay_properties)
 	if secrets.generic_2 or (replay_properties and not replay_properties.version) then
 		self.legacy_mode = true
 	end
-	self:setReplayProperty("version", 1)
+	if secrets.generic_3 and (not replay_properties or replay_properties.version >= 2) then
+		self.full_throttle = true
+	end
+	self:setReplayProperty("version", 2)
 	self.grid = PikiiGrid(10, 24)
 	self.grade = 0
 	self.last_pikii_row_count = 0
@@ -325,6 +328,9 @@ function GlacialInsanity:getLineClearDelay()
 end
 
 function GlacialInsanity:getLockDelay()
+	if self.full_throttle then
+		return 8
+	end
 	if self.level < 100 then
 		return 16
 	elseif self.level < 200 then
@@ -415,6 +421,9 @@ function GlacialInsanity:advanceOneFrame()
 	elseif self.ready_frames == 1 then
 		if bgm[11] and self.hash == "GlacialInsanity" then
 			switchBGMLoop(11)
+		elseif self.level >= 500 and bgm["gm4_master_body"] and bgm["gm4_master_body"][5] then
+			self:playBGMLevel(5)
+			self.gm4_music_mode = true
 		elseif bgm["gm4_master_body"] and bgm["gm4_master_body"][3] and bgm["gm4_master_head"] and bgm["gm4_master_head"][3] then
 			self:playBGMLevel(3)
 			self.gm4_music_mode = true
@@ -713,7 +722,7 @@ function GlacialInsanity:sectionColourFunction(section)
 	end
 end
 
-local bgm_level = 0
+local bgm_level = -1
 local was_paused = false
 
 function GlacialInsanity:handleBGM()
@@ -747,6 +756,7 @@ end
 
 function GlacialInsanity:onGameOver()
 	self.super.onGameOver(self)
+	bgm_level = -1
 	love.graphics.setColor(1, 1, 1, 1)
 	if self.game_over_frames > 180 then
 		love.graphics.printf("STATISTICS", font_8x11_small, 64, 96, 160, "center")
@@ -805,7 +815,11 @@ function GlacialInsanity:drawScoringInfo()
 	if sg >= 5 then 
 		love.graphics.printf("SECRET GRADE", 240, 430, 180, "left")
 	end
-	if self.legacy_mode then
+	if self.legacy_mode and self.full_throttle then
+		love.graphics.printf("INITAL DESIGN", text_x, 300, 250, "left")
+	elseif self.full_throttle then
+		love.graphics.printf("FULL THROTTLE", text_x, 300, 250, "left")
+	elseif self.legacy_mode then
 		love.graphics.printf("LEGACY MODE", text_x, 300, 250, "left")
 	end
 
